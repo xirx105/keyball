@@ -38,4 +38,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define POINTING_DEVICE_AUTO_MOUSE_ENABLE
 #define AUTO_MOUSE_DEFAULT_LAYER 1
 
+// レイヤー数を5（0~4）に変更
 #define DYNAMIC_KEYMAP_LAYER_COUNT 5
+
+// ホールド判定待ち中に次のキーが入ると即ホールド判定が確定
+#define HOLD_ON_OTHER_KEY_PRESS
+// ホールドキーを離した後にホールドを維持する機能
+#define PERMISSIVE_HOLD
