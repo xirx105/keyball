@@ -35,7 +35,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define TAP_CODE_DELAY 5
 
-#define POINTING_DEVICE_AUTO_MOUSE_ENABLE
-#define AUTO_MOUSE_DEFAULT_LAYER 1
+// すべてのレイヤーでスクロールできるようにうする
+#define POINTING_DEVICE_COMBINED
+#define SPLIT_POINTING_ENABLE
 
-#define DYNAMIC_KEYMAP_LAYER_COUNT 5
+// ホールド判定待ち中に次のキーが入ると即ホールド判定が確定
+#define HOLD_ON_OTHER_KEY_PRESS
+// ホールドキーを離した後にホールドを維持する機能
+#define PERMISSIVE_HOLD
+#define POINTING_DEVICE_AUTO_MOUSE_ENABLE
+
+#define AUTO_MOUSE_DEFAULT_LAYER 1
