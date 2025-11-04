@@ -30,7 +30,7 @@ jobs:
     strategy:
       matrix:
         keyboard: [ keyball44 ]
-        keymap: [ via ]
+        keymap: [ default, via ]
 
     uses: ./.github/workflows/build-firmware.yml
     with:
