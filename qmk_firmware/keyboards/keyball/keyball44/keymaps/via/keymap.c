@@ -69,3 +69,68 @@ void oledkit_render_info_user(void) {
     keyball_oled_render_layerinfo();
 }
 #endif
+
+/* ----- ヨー回転スクロール機能 ここから ----- */
+
+// この機能を有効化するフラグ
+#define YAW_SCROLL_ENABLE
+
+// どのくらいの回転量でスクロールを開始するかの「閾値」。
+// この値を小さくすると、より敏感に反応します。
+#define YAW_SCROLL_THRESHOLD 800
+
+// 何ミリ秒間動きがなかったら、回転量の蓄積をリセットするか
+#define YAW_SCROLL_TIMEOUT 500
+
+#ifdef YAW_SCROLL_ENABLE
+// 回転の状態を保存するためのグローバル変数
+static int32_t cumulative_rotation = 0;
+static int16_t last_x = 0;
+static int16_t last_y = 0;
+static uint32_t last_time = 0;
+
+// トラックボールが動くたびに呼び出される関数
+report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
+    int16_t x = mouse_report.x;
+    int16_t y = mouse_report.y;
+
+    // タイムアウト処理（一定時間動かなかったらリセット）
+    if (timer_elapsed32(last_time) > YAW_SCROLL_TIMEOUT) {
+        cumulative_rotation = 0;
+    }
+    last_time = timer_read32();
+
+    // 動きが小さい場合はリセット (不感帯)
+    if (abs(x) < 2 && abs(y) < 2) {
+        last_x = 0;
+        last_y = 0;
+        return mouse_report;
+    }
+
+    // 「外積」を計算して回転量を蓄積
+    int32_t cross_product = (int32_t)x * last_y - (int32_t)y * last_x;
+    cumulative_rotation += cross_product;
+
+    // 状態を更新
+    last_x = x;
+    last_y = y;
+
+    // 蓄積された回転量が閾値を超えたら、スクロールイベントを発生させる
+    if (cumulative_rotation > YAW_SCROLL_THRESHOLD) {
+        // 時計回り -> 垂直スクロール（下）
+        mouse_report.v = 1; // 1スクロール下に動かす
+        mouse_report.x = 0; // 元のポインタ移動はキャンセル
+        mouse_report.y = 0;
+        cumulative_rotation = 0; // 回転量をリセット
+    } else if (cumulative_rotation < -YAW_SCROLL_THRESHOLD) {
+        // 反時計回り -> 垂直スクロール（上）
+        mouse_report.v = -1; // 1スクロール上に動かす
+        mouse_report.x = 0; // 元のポインタ移動はキャンセル
+        mouse_report.y = 0;
+        cumulative_rotation = 0; // 回転量をリセット
+    }
+
+    return mouse_report;
+}
+#endif
+/* ----- ヨー回転スクロール機能 ここまで ----- */
