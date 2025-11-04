@@ -111,14 +111,14 @@ report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
 
     // 蓄積された回転量が閾値を超えたら、スクロールイベントを発生させる
     if (cumulative_rotation > YAW_SCROLL_THRESHOLD) {
-        // 時計回り -> 垂直スクロール（下）
-        mouse_report.v = 1; // 1スクロール下に動かす
+        // 反時計回り -> 垂直スクロール（上）
+        mouse_report.v = -1; // 1スクロール上に動かす
         mouse_report.x = 0; // 元のポインタ移動はキャンセル
         mouse_report.y = 0;
         cumulative_rotation = 0; // 回転量をリセット
     } else if (cumulative_rotation < -YAW_SCROLL_THRESHOLD) {
-        // 反時計回り -> 垂直スクロール（上）
-        mouse_report.v = -1; // 1スクロール上に動かす
+        // 時計回り -> 垂直スクロール（下）
+        mouse_report.v = 1; // 1スクロール下に動かす
         mouse_report.x = 0; // 元のポインタ移動はキャンセル
         mouse_report.y = 0;
         cumulative_rotation = 0; // 回転量をリセット
