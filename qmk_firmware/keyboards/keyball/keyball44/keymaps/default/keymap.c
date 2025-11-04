@@ -122,5 +122,10 @@ report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
         mouse_report.x = 0; // 元のポインタ移動はキャンセル
         mouse_report.y = 0;
         cumulative_rotation = 0; // 回転量をリセット
+    }
+
+    return mouse_report;
+}
+
 #endif
 /* ----- ヨー回転スクロール機能 ここまで ----- */
