@@ -53,12 +53,6 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 };
 // clang-format on
 
-layer_state_t layer_state_set_user(layer_state_t state) {
-    // Auto enable scroll mode when the highest layer is 3
-    keyball_set_scroll_mode(get_highest_layer(state) == 3);
-    return state;
-}
-
 #ifdef OLED_ENABLE
 
 #    include "lib/oledkit/oledkit.h"
@@ -117,20 +111,16 @@ report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
 
     // 蓄積された回転量が閾値を超えたら、スクロールイベントを発生させる
     if (cumulative_rotation > YAW_SCROLL_THRESHOLD) {
-        // 時計回り -> 垂直スクロール（下）
-        mouse_report.v = 1; // 1スクロール下に動かす
-        mouse_report.x = 0; // 元のポインタ移動はキャンセル
-        mouse_report.y = 0;
-        cumulative_rotation = 0; // 回転量をリセット
-    } else if (cumulative_rotation < -YAW_SCROLL_THRESHOLD) {
         // 反時計回り -> 垂直スクロール（上）
         mouse_report.v = -1; // 1スクロール上に動かす
         mouse_report.x = 0; // 元のポインタ移動はキャンセル
         mouse_report.y = 0;
         cumulative_rotation = 0; // 回転量をリセット
-    }
-
-    return mouse_report;
-}
+    } else if (cumulative_rotation < -YAW_SCROLL_THRESHOLD) {
+        // 時計回り -> 垂直スクロール（下）
+        mouse_report.v = 1; // 1スクロール下に動かす
+        mouse_report.x = 0; // 元のポインタ移動はキャンセル
+        mouse_report.y = 0;
+        cumulative_rotation = 0; // 回転量をリセット
 #endif
 /* ----- ヨー回転スクロール機能 ここまで ----- */
