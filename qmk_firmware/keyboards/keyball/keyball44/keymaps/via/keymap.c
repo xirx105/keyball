@@ -115,7 +115,7 @@ layer_state_t layer_state_set_user(layer_state_t state) {
     return state;
 }
 
-/* ----- ヨー回転による自動レイヤー切り替え機能 ここから ----- *
+/* ----- ヨー回転による自動レイヤー切り替え機能 ここから ----- */
 
 // 感度設定 (値を小さくすると敏感になる)
 #define YAW_SCROLL_SCALE_BASE 100
