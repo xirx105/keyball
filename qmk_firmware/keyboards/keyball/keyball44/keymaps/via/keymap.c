@@ -122,7 +122,7 @@ report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
         }
         
         // ヨー回転の向きに応じてスクロール方向を決定
-        int32 scale = (cumulative_rotation - YAW_SCROLL_THRESHOLD) / YAW_SCROLL_SCALE_BASE + 1;
+        int32_t scale = (cumulative_rotation - YAW_SCROLL_THRESHOLD) / YAW_SCROLL_SCALE_BASE + 1;
         if (cumulative_rotation > 0) {
             mouse_report.v = scale; // 垂直スクロール（下）
         } else {
