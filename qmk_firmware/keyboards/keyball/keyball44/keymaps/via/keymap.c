@@ -65,12 +65,8 @@ void oledkit_render_info_user(void) {
 #endif
 
 layer_state_t layer_state_set_user(layer_state_t state) {
-    if (get_highest_layer(state)==3) {
-      // 必要に応じてCPI（マウス感度）をデフォルトに戻す
-      // pointing_device_set_cpi(CPI_DEFAULT);
-      // トラックボールのモードを「スクロールモード」に設定する
-      pointing_device_set_cpi(POINTING_DEVICE_BUTTON2);
-    }
+    // Auto enable scroll mode when the highest layer is 3
+    keyball_set_scroll_mode(get_highest_layer(state) == 3);
     return state;
 }
 
