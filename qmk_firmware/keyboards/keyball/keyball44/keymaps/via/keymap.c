@@ -55,7 +55,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 #ifdef OLED_ENABLE
 
-#    include "lib/oledkit/oledkit.h"
+#include "lib/oledkit/oledkit.h"
 
 void oledkit_render_info_user(void) {
     keyball_oled_render_keyinfo();
@@ -107,35 +107,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         }
     }
     return true; // 上記以外のキーは、QMKの通常処理に任せる
-}
-
-// OLEDに表示する内容を描画する関数
-bool oled_task_user(void) {
-    // 1行目: 現在のレイヤー名を描画する（KeyBallの標準機能）
-    oled_render_layer_state();
-    
-    // 2行目: 押したキーのログを描画する（KeyBallの標準機能）
-    oled_render_keylog();
-
-    // ----- ここからが追加するコード -----
-    
-    // 3行目: ヨー回転の閾値を表示する
-    
-    // EEPROMから現在の閾値（しきいち）を読み出す
-    uint16_t current_threshold = eeprom_read_word(&yaw_scroll_threshold_eeprom);
-    
-    // 表示用の文字列バッファを作成（例: "Thr: 800"）
-    char str[10];
-    sprintf(str, "Thr:%u", current_threshold);
-
-    // 3行目 (0から数えて2行目) の先頭にカーソルを移動
-    oled_set_cursor(0, 2);
-    // 文字列をOLEDに書き込む
-    oled_write(str, false);
-    
-    // ----- ここまで -----
-
-    return true;
 }
 
 /* ----- ヨー回転による自動レイヤー切り替え機能 ここから ----- */
