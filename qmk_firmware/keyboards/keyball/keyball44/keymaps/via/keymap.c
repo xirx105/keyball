@@ -109,7 +109,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     return true; // 上記以外のキーは、QMKの通常処理に任せる
 }
 
-/* ----- ヨー回転による自動レイヤー切り替え機能 ここから ----- */
+layer_state_t layer_state_set_user(layer_state_t state) {
+    // Auto enable scroll mode when the highest layer is 3
+    keyball_set_scroll_mode(get_highest_layer(state) == 3);
+    return state;
+}
+
+/* ----- ヨー回転による自動レイヤー切り替え機能 ここから ----- *
 
 // 感度設定 (値を小さくすると敏感になる)
 #define YAW_SCROLL_SCALE_BASE 100
@@ -175,7 +181,7 @@ report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
 
         // 元のポインタ移動はキャンセルする
         mouse_report.x = 0;
-        mouse_report.y = 0;
+        mouse_report.y = 0;k
         
         cumulative_rotation = 0; // 蓄積量をリセット
     }
