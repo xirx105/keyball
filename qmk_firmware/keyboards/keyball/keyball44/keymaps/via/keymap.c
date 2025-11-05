@@ -1,4 +1,4 @@
-;/*
+/*
 Copyright 2022 @Yowkees
 Copyright 2022 MURAOKA Taro (aka KoRoN, @kaoriya)
 
@@ -86,15 +86,13 @@ static int32_t cumulative_rotation = 0;
 static int16_t last_x = 0;
 static int16_t last_y = 0;
 static uint32_t last_time = 0;
-// この機能でレイヤー3を有効にしたかを記憶するフラグ
 static bool yaw_scroll_layer_active = false;
 
-// トラックボールが動くたびに呼び出される
 report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
     int16_t x = mouse_report.x;
     int16_t y = mouse_report.y;
 
-    // タイムアウト処理（一定時間動かなかったらリセット）
+    // タイムアウト処理
     if (timer_elapsed32(last_time) > YAW_SCROLL_TIMEOUT) {
         cumulative_rotation = 0;
         if (yaw_scroll_layer_active) {
@@ -108,12 +106,23 @@ report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
         last_x = 0;
         last_y = 0;
         // タイムアウト判定のために時間は更新し続ける
-        last_time = timer_read32();
+        // ただし、スクロールモード中はタイムアウトをリセットし続ける
+        if (!yaw_scroll_layer_active) { 
+            last_time = timer_read32();
+        }
         return mouse_report;
     }
 
     // タイムアウトをリセット
     last_time = timer_read32();
+
+    // レイヤー3が有効（＝スクロールモード中）なら、このコードはこれ以上何もしない
+    // (layer_state_set_user が有効化したスクロールモードに、マウスの動きをそのまま渡す)
+    if (yaw_scroll_layer_active) {
+        return mouse_report;
+    }
+
+    // --- ここから下は、レイヤー1や2にいる時（ポインタモード中）の処理 ---
 
     // 「外積」を計算して回転量を蓄積
     int32_t cross_product = (int32_t)x * last_y - (int32_t)y * last_x;
@@ -123,21 +132,13 @@ report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
     last_x = x;
     last_y = y;
 
-    // 蓄積された回転量が閾値を超え、かつ現在スクロールモードでないなら、
-    // レイヤー3を強制的に有効化する
-    if (abs(cumulative_rotation) > YAW_SCROLL_THRESHOLD && !yaw_scroll_layer_active) {
+    // 蓄積された回転量が閾値を超えたら、レイヤー3を有効化
+    if (abs(cumulative_rotation) > YAW_SCROLL_THRESHOLD) {
         layer_on(3); // レイヤー3をオンにする
         yaw_scroll_layer_active = true;
         cumulative_rotation = 0; // 回転量をリセット
 
-        // この瞬間のポインタ移動はキャンセルする
-        mouse_report.x = 0;
-        mouse_report.y = 0;
-    }
-
-    // この機能でレイヤー3を有効化している間は、
-    // ポインタ移動をキャンセルし、レイヤー3の標準動作（スクロール）に任せる
-    if (yaw_scroll_layer_active) {
+        // この瞬間のポインタ移動はキャンセルする（カーソルの飛びを防ぐため）
         mouse_report.x = 0;
         mouse_report.y = 0;
     }
