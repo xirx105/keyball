@@ -64,26 +64,22 @@ void oledkit_render_info_user(void) {
 }
 #endif
 
-/* ----- ヨー回転スクロール機能 ここから ----- */
+/* ----- ヨー回転による自動レイヤー切り替え機能 ここから ----- */
 
-// この機能を有効化するフラグ
-#define YAW_SCROLL_ENABLE
+// 感度設定 (値を小さくすると敏感になる)
+#define YAW_SCROLL_THRESHOLD 400
+// タイムアウト (ミリ秒)
+#define YAW_SCROLL_TIMEOUT 1000
 
-// どのくらいの回転量でスクロールを開始するかの「閾値」。
-// この値を小さくすると、より敏感に反応します。
-#define YAW_SCROLL_THRESHOLD 800
-
-// 何ミリ秒間動きがなかったら、回転量の蓄積をリセットするか
-#define YAW_SCROLL_TIMEOUT 500
-
-#ifdef YAW_SCROLL_ENABLE
-// 回転の状態を保存するためのグローバル変数
+// 状態を保存する変数
 static int32_t cumulative_rotation = 0;
 static int16_t last_x = 0;
 static int16_t last_y = 0;
 static uint32_t last_time = 0;
+// この機能でレイヤー3を有効にしたかを記憶するフラグ
+static bool yaw_scroll_layer_active = false;
 
-// トラックボールが動くたびに呼び出される関数
+// トラックボールが動くたびに呼び出される
 report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
     int16_t x = mouse_report.x;
     int16_t y = mouse_report.y;
@@ -91,15 +87,23 @@ report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
     // タイムアウト処理（一定時間動かなかったらリセット）
     if (timer_elapsed32(last_time) > YAW_SCROLL_TIMEOUT) {
         cumulative_rotation = 0;
+        if (yaw_scroll_layer_active) {
+            layer_off(3); // レイヤー3をオフにする
+            yaw_scroll_layer_active = false;
+        }
     }
-    last_time = timer_read32();
 
-    // 動きが小さい場合はリセット (不感帯)
+    // 動きが小さい場合は処理しない (不感帯)
     if (abs(x) < 2 && abs(y) < 2) {
         last_x = 0;
         last_y = 0;
+        // タイムアウト判定のために時間は更新し続ける
+        last_time = timer_read32();
         return mouse_report;
     }
+
+    // タイムアウトをリセット
+    last_time = timer_read32();
 
     // 「外積」を計算して回転量を蓄積
     int32_t cross_product = (int32_t)x * last_y - (int32_t)y * last_x;
@@ -109,22 +113,25 @@ report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
     last_x = x;
     last_y = y;
 
-    // 蓄積された回転量が閾値を超えたら、スクロールイベントを発生させる
-    if (cumulative_rotation > YAW_SCROLL_THRESHOLD) {
-        // 反時計回り -> 垂直スクロール（上）
-        mouse_report.v = -1; // 1スクロール上に動かす
-        mouse_report.x = 0; // 元のポインタ移動はキャンセル
-        mouse_report.y = 0;
+    // 蓄積された回転量が閾値を超え、かつ現在スクロールモードでないなら、
+    // レイヤー3を強制的に有効化する
+    if (abs(cumulative_rotation) > YAW_SCROLL_THRESHOLD && !yaw_scroll_layer_active) {
+        layer_on(3); // レイヤー3をオンにする
+        yaw_scroll_layer_active = true;
         cumulative_rotation = 0; // 回転量をリセット
-    } else if (cumulative_rotation < -YAW_SCROLL_THRESHOLD) {
-        // 時計回り -> 垂直スクロール（下）
-        mouse_report.v = 1; // 1スクロール下に動かす
-        mouse_report.x = 0; // 元のポインタ移動はキャンセル
+
+        // この瞬間のポインタ移動はキャンセルする
+        mouse_report.x = 0;
         mouse_report.y = 0;
-        cumulative_rotation = 0; // 回転量をリセット
+    }
+
+    // この機能でレイヤー3を有効化している間は、
+    // ポインタ移動をキャンセルし、レイヤー3の標準動作（スクロール）に任せる
+    if (yaw_scroll_layer_active) {
+        mouse_report.x = 0;
+        mouse_report.y = 0;
     }
 
     return mouse_report;
 }
-#endif
-/* ----- ヨー回転スクロール機能 ここまで ----- */
+/* ----- ヨー回転による自動レイヤー切り替え機能 ここまで ----- */
