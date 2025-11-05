@@ -75,64 +75,67 @@ layer_state_t layer_state_set_user(layer_state_t state) {
 // 感度設定 (値を小さくすると敏感になる)
 #define YAW_SCROLL_THRESHOLD 400
 // タイムアウト (ミリ秒)
-#define YAW_SCROLL_TIMEOUT 1000
+#define YAW_SCROLL_TIMEOUT 800
 
 // 状態を保存する変数
 static int32_t cumulative_rotation = 0;
 static int16_t last_x = 0;
 static int16_t last_y = 0;
 static uint32_t last_time = 0;
-static bool yaw_scroll_layer_active = false;
+static bool yaw_scroll_layer_active = false; // ヨー回転で切り替わったかのフラグ
 
 report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
     int16_t x = mouse_report.x;
     int16_t y = mouse_report.y;
 
+    // 現在のレイヤー番号をQMKから直接取得
+    uint8_t current_layer = get_highest_layer(layer_state);
+
+    // もし今がレイヤー3（スクロールモード）なら、
+    // ヨー回転の検出は一切せず、全ての動きをそのままスクロール処理に渡す
+    if (current_layer == 3) {
+        // 手動でレイヤー3に入った場合、ヨー回転フラグをリセットしておく
+        yaw_scroll_layer_active = false; 
+        // タイムアウトをリセットし続ける（勝手に戻らないように）
+        last_time = timer_read32();
+        return mouse_report;
+    }
+
+    // --- ここから下は、レイヤー0, 1, 2にいる時（ポインタモード中）の処理 ---
+
     // タイムアウト処理
     if (timer_elapsed32(last_time) > YAW_SCROLL_TIMEOUT) {
         cumulative_rotation = 0;
+        // ヨー回転でレイヤー3に入っていた場合のみ、自動でレイヤーをオフにする
         if (yaw_scroll_layer_active) {
-            layer_off(3); // レイヤー3をオフにする
+            layer_off(3);
             yaw_scroll_layer_active = false;
         }
     }
 
-    // 動きが小さい場合は処理しない (不感帯)
-    if (abs(x) < 2 && abs(y) < 2) {
-        last_x = 0;
-        last_y = 0;
-        // タイムアウト判定のために時間は更新し続ける
-        // ただし、スクロールモード中はタイムアウトをリセットし続ける
-        if (!yaw_scroll_layer_active) { 
-            last_time = timer_read32();
-        }
-        return mouse_report;
-    }
-
-    // タイムアウトをリセット
+    // タイムアウト判定のために時間は常に更新
     last_time = timer_read32();
 
-    // レイヤー3が有効（＝スクロールモード中）なら、このコードはこれ以上何もしない
-    // (layer_state_set_user が有効化したスクロールモードに、マウスの動きをそのまま渡す)
-    if (yaw_scroll_layer_active) {
+    // 動きが小さい場合は処理しない (不感帯)
+    // V4の修正点： last_x, last_y はここではリセットしない！
+    if (abs(x) < 2 && abs(y) < 2) {
         return mouse_report;
     }
 
-    // --- ここから下は、レイヤー1や2にいる時（ポインタモード中）の処理 ---
-
     // 「外積」を計算して回転量を蓄積
+    // V4の修正点： last_x, last_y が 0 でないため、正しく計算される
     int32_t cross_product = (int32_t)x * last_y - (int32_t)y * last_x;
     cumulative_rotation += cross_product;
 
-    // 状態を更新
+    // 状態を更新 (常に最後の動きを保存する)
     last_x = x;
     last_y = y;
 
     // 蓄積された回転量が閾値を超えたら、レイヤー3を有効化
     if (abs(cumulative_rotation) > YAW_SCROLL_THRESHOLD) {
-        layer_on(3); // レイヤー3をオンにする
-        yaw_scroll_layer_active = true;
-        cumulative_rotation = 0; // 回転量をリセット
+        layer_on(3);
+        yaw_scroll_layer_active = true; // ヨー回転で入ったことを記録
+        cumulative_rotation = 0; 
 
         // この瞬間のポインタ移動はキャンセルする（カーソルの飛びを防ぐため）
         mouse_report.x = 0;
