@@ -64,12 +64,6 @@ void oledkit_render_info_user(void) {
 }
 #endif
 
-layer_state_t layer_state_set_user(layer_state_t state) {
-    // Auto enable scroll mode when the highest layer is 3
-    keyball_set_scroll_mode(get_highest_layer(state) == 3);
-    return state;
-}
-
 /* ----- ヨー回転による自動レイヤー切り替え機能 ここから ----- */
 
 // 感度設定 (値を小さくすると敏感になる)
@@ -87,23 +81,20 @@ static bool yaw_scroll_layer_active = false; // ヨー回転で切り替わっ�
 report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
     int16_t x = mouse_report.x;
     int16_t y = mouse_report.y;
-    uint8_t current_layer = get_highest_layer(layer_state);
 
-    // --- タイムアウト処理 (V6修正点: 最初にチェックする) ---
-    // 動きが止まってから一定時間が経過したか？
+    // --- タイムアウト処理 ---
     if (timer_elapsed32(last_time) > YAW_SCROLL_TIMEOUT) {
         cumulative_rotation = 0;
         last_x = 0;
         last_y = 0;
         // ヨー回転でレイヤー3に入っていた場合のみ、自動でレイヤーをオフにする
-        if (yaw_scroll_layer_active && current_layer == 3) {
+        if (yaw_scroll_layer_active) {
             layer_off(3);
             yaw_scroll_layer_active = false;
         }
     }
 
     // --- 不感帯（デッドゾーン）処理 ---
-    // 動きが小さい（ほぼ止まっている）か？
     if (abs(x) < 2 && abs(y) < 2) {
         // 動きが止まっている時はタイマーをリセットしない（タイムアウトさせるため）
         return mouse_report;
@@ -113,36 +104,34 @@ report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
     // ボールが動いているので、タイムアウトタイマーをリセット
     last_time = timer_read32();
 
-    // --- メインロジック ---
-    // もし今がレイヤー3（スクロールモード）なら、
-    // ヨー回転の検出はせず、全ての動きをそのままスクロール処理に渡す
-    if (current_layer == 3) {
-        // 手動でレイヤー3に入った場合、ヨー回転フラグをリセットしておく
-        yaw_scroll_layer_active = false; 
-        return mouse_report;
-    }
-
-    // --- ここから下は、レイヤー0, 1, 2にいる時（ポインタモード中）の処理 ---
-    // 念のためフラグをリセット
-    yaw_scroll_layer_active = false;
-
     // 「外積」を計算して回転量を蓄積
     int32_t cross_product = (int32_t)x * last_y - (int32_t)y * last_x;
     cumulative_rotation += cross_product;
 
-    // 状態を更新 (常に最後の動きを保存する)
+    // 状態を更新
     last_x = x;
     last_y = y;
 
-    // 蓄積された回転量が閾値を超えたら、レイヤー3を有効化
+    // 蓄積された回転量が閾値を超えたら、
+    // スクロールイベントを「生成」し、レイヤー3を「有効化」する
     if (abs(cumulative_rotation) > YAW_SCROLL_THRESHOLD) {
-        layer_on(3);
-        yaw_scroll_layer_active = true; // ヨー回転で入ったことを記録
-        cumulative_rotation = 0; 
+        if (!yaw_scroll_layer_active) {
+            layer_on(3); // レイヤー3をオンにする（OLED表示用）
+            yaw_scroll_layer_active = true; 
+        }
+        
+        // ヨー回転の向きに応じてスクロール方向を決定
+        if (cumulative_rotation > 0) {
+            mouse_report.v = 1; // 垂直スクロール（下）
+        } else {
+            mouse_report.v = -1; // 垂直スクロール（上）
+        }
 
-        // この瞬間のポインタ移動はキャンセルする（カーソルの飛びを防ぐため）
+        // 元のポインタ移動はキャンセルする
         mouse_report.x = 0;
         mouse_report.y = 0;
+        
+        cumulative_rotation = 0; // 蓄積量をリセット
     }
 
     return mouse_report;
