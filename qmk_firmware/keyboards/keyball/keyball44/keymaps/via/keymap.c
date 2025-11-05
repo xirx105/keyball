@@ -105,8 +105,10 @@ report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
 
     // タイムアウト処理
     if (timer_elapsed32(last_time) > YAW_SCROLL_TIMEOUT) {
+        // V5修正点: すべての状態をリセットする
         cumulative_rotation = 0;
-        // ヨー回転でレイヤー3に入っていた場合のみ、自動でレイヤーをオフにする
+        last_x = 0;
+        last_y = 0;
         if (yaw_scroll_layer_active) {
             layer_off(3);
             yaw_scroll_layer_active = false;
@@ -117,13 +119,13 @@ report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
     last_time = timer_read32();
 
     // 動きが小さい場合は処理しない (不感帯)
-    // V4の修正点： last_x, last_y はここではリセットしない！
     if (abs(x) < 2 && abs(y) < 2) {
         return mouse_report;
     }
 
     // 「外積」を計算して回転量を蓄積
-    // V4の修正点： last_x, last_y が 0 でないため、正しく計算される
+    // V5修正点: タイムアウト時に last_x, last_y がリセットされているため、
+    // 新しいジェスチャーの1回目は cross_product が 0 となり、正しく計算が開始される
     int32_t cross_product = (int32_t)x * last_y - (int32_t)y * last_x;
     cumulative_rotation += cross_product;
 
