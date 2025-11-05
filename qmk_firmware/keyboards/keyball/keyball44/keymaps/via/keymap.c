@@ -64,10 +64,83 @@ void oledkit_render_info_user(void) {
 }
 #endif
 
+// EEPROM（記憶領域）を扱うためのライブラリを読み込む
+#include "eeprom.h"
+
+// 自分で作るカスタムキーコードの名前を決める
+enum custom_keycodes {
+    YAW_T_UP = SAFE_RANGE, // ヨー回転の閾値を上げるキー
+    YAW_T_DN               // ヨー回転の閾値を下げるキー
+};
+
+// EEPROMに保存する閾値の「保存場所」を定義し、デフォルト値を800に設定
+uint16_t EEMEM yaw_scroll_threshold_eeprom = 800;
+// 実際にプログラムが使用する（RAM上の）閾値変数を定義
+static uint16_t yaw_scroll_threshold;
+
+// キーボード起動時に、EEPROMから設定を読み込むための関数
+void keyboard_post_init_user(void) {
+    // EEPROMから値を読み出して、RAM上の変数にコピーする
+    yaw_scroll_threshold = eeprom_read_word(&yaw_scroll_threshold_eeprom);
+}
+
+// キーが押されるたびに呼び出される関数
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    if (record->event.pressed) { // キーが押された時だけ処理
+        switch (keycode) {
+            case YAW_T_UP: // 閾値を上げるキーが押されたら
+                yaw_scroll_threshold += 50; // 閾値を50上げる
+                // 変更した値をEEPROMに保存する
+                eeprom_update_word(&yaw_scroll_threshold_eeprom, yaw_scroll_threshold);
+                return false; // QMKに「このキーは処理済み」と伝える
+
+            case YAW_T_DN: // 閾値を下げるキーが押されたら
+                // 50より下には行かないようにする
+                if (yaw_scroll_threshold > 50) {
+                    yaw_scroll_threshold -= 50; // 閾値を50下げる
+                } else {
+                    yaw_scroll_threshold = 0;
+                }
+                // 変更した値をEEPROMに保存する
+                eeprom_update_word(&yaw_scroll_threshold_eeprom, yaw_scroll_threshold);
+                return false; // QMKに「このキーは処理済み」と伝える
+        }
+    }
+    return true; // 上記以外のキーは、QMKの通常処理に任せる
+}
+
+// OLEDに表示する内容を描画する関数
+bool oled_task_user(void) {
+    // 1行目: 現在のレイヤー名を描画する（KeyBallの標準機能）
+    oled_render_layer_state();
+    
+    // 2行目: 押したキーのログを描画する（KeyBallの標準機能）
+    oled_render_keylog();
+
+    // ----- ここからが追加するコード -----
+    
+    // 3行目: ヨー回転の閾値を表示する
+    
+    // EEPROMから現在の閾値（しきいち）を読み出す
+    uint16_t current_threshold = eeprom_read_word(&yaw_scroll_threshold_eeprom);
+    
+    // 表示用の文字列バッファを作成（例: "Thr: 800"）
+    char str[10];
+    sprintf(str, "Thr:%u", current_threshold);
+
+    // 3行目 (0から数えて2行目) の先頭にカーソルを移動
+    oled_set_cursor(0, 2);
+    // 文字列をOLEDに書き込む
+    oled_write(str, false);
+    
+    // ----- ここまで -----
+
+    return true;
+}
+
 /* ----- ヨー回転による自動レイヤー切り替え機能 ここから ----- */
 
 // 感度設定 (値を小さくすると敏感になる)
-#define YAW_SCROLL_THRESHOLD 1200
 #define YAW_SCROLL_SCALE_BASE 100
 // タイムアウト (ミリ秒)
 #define YAW_SCROLL_TIMEOUT 300
@@ -115,14 +188,14 @@ report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
 
     // 蓄積された回転量が閾値を超えたら、
     // スクロールイベントを「生成」し、レイヤー3を「有効化」する
-    if (abs(cumulative_rotation) > YAW_SCROLL_THRESHOLD) {
+    if (abs(cumulative_rotation) > yaw_scroll_threshold) {
         if (!yaw_scroll_layer_active) {
             layer_on(3); // レイヤー3をオンにする（OLED表示用）
             yaw_scroll_layer_active = true; 
         }
         
         // ヨー回転の向きに応じてスクロール方向を決定
-        int32_t scale = (cumulative_rotation - YAW_SCROLL_THRESHOLD) / YAW_SCROLL_SCALE_BASE + 1;
+        int32_t scale = (cumulative_rotation - yaw_scroll_threshold) / YAW_SCROLL_SCALE_BASE + 1;
         if (cumulative_rotation > 0) {
             mouse_report.v = scale; // 垂直スクロール（下）
         } else {
