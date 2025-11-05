@@ -67,9 +67,9 @@ void oledkit_render_info_user(void) {
 /* ----- ヨー回転による自動レイヤー切り替え機能 ここから ----- */
 
 // 感度設定 (値を小さくすると敏感になる)
-#define YAW_SCROLL_THRESHOLD 400
+#define YAW_SCROLL_THRESHOLD 50
 // タイムアウト (ミリ秒)
-#define YAW_SCROLL_TIMEOUT 800
+#define YAW_SCROLL_TIMEOUT 300
 
 // 状態を保存する変数
 static int32_t cumulative_rotation = 0;
