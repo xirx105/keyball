@@ -67,7 +67,8 @@ void oledkit_render_info_user(void) {
 /* ----- ヨー回転による自動レイヤー切り替え機能 ここから ----- */
 
 // 感度設定 (値を小さくすると敏感になる)
-#define YAW_SCROLL_THRESHOLD 50
+#define YAW_SCROLL_THRESHOLD 400
+#define YAW_SCROLL_SCALE_BASE 50
 // タイムアウト (ミリ秒)
 #define YAW_SCROLL_TIMEOUT 300
 
@@ -121,10 +122,11 @@ report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
         }
         
         // ヨー回転の向きに応じてスクロール方向を決定
+        int32 scale = (cumulative_rotation - YAW_SCROLL_THRESHOLD) / YAW_SCROLL_SCALE_BASE + 1;
         if (cumulative_rotation > 0) {
-            mouse_report.v = 1; // 垂直スクロール（下）
+            mouse_report.v = scale; // 垂直スクロール（下）
         } else {
-            mouse_report.v = -1; // 垂直スクロール（上）
+            mouse_report.v = -scale; // 垂直スクロール（上）
         }
 
         // 元のポインタ移動はキャンセルする
