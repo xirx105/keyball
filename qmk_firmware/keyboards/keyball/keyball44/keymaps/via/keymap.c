@@ -87,45 +87,46 @@ static bool yaw_scroll_layer_active = false; // ヨー回転で切り替わっ�
 report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
     int16_t x = mouse_report.x;
     int16_t y = mouse_report.y;
-
-    // 現在のレイヤー番号をQMKから直接取得
     uint8_t current_layer = get_highest_layer(layer_state);
 
-    // もし今がレイヤー3（スクロールモード）なら、
-    // ヨー回転の検出は一切せず、全ての動きをそのままスクロール処理に渡す
-    if (current_layer == 3) {
-        // 手動でレイヤー3に入った場合、ヨー回転フラグをリセットしておく
-        yaw_scroll_layer_active = false; 
-        // タイムアウトをリセットし続ける（勝手に戻らないように）
-        last_time = timer_read32();
-        return mouse_report;
-    }
-
-    // --- ここから下は、レイヤー0, 1, 2にいる時（ポインタモード中）の処理 ---
-
-    // タイムアウト処理
+    // --- タイムアウト処理 (V6修正点: 最初にチェックする) ---
+    // 動きが止まってから一定時間が経過したか？
     if (timer_elapsed32(last_time) > YAW_SCROLL_TIMEOUT) {
-        // V5修正点: すべての状態をリセットする
         cumulative_rotation = 0;
         last_x = 0;
         last_y = 0;
-        if (yaw_scroll_layer_active) {
+        // ヨー回転でレイヤー3に入っていた場合のみ、自動でレイヤーをオフにする
+        if (yaw_scroll_layer_active && current_layer == 3) {
             layer_off(3);
             yaw_scroll_layer_active = false;
         }
     }
 
-    // タイムアウト判定のために時間は常に更新
-    last_time = timer_read32();
-
-    // 動きが小さい場合は処理しない (不感帯)
+    // --- 不感帯（デッドゾーン）処理 ---
+    // 動きが小さい（ほぼ止まっている）か？
     if (abs(x) < 2 && abs(y) < 2) {
+        // 動きが止まっている時はタイマーをリセットしない（タイムアウトさせるため）
         return mouse_report;
     }
 
+    // --- ここから下は、ボールが確実に動いている時の処理 ---
+    // ボールが動いているので、タイムアウトタイマーをリセット
+    last_time = timer_read32();
+
+    // --- メインロジック ---
+    // もし今がレイヤー3（スクロールモード）なら、
+    // ヨー回転の検出はせず、全ての動きをそのままスクロール処理に渡す
+    if (current_layer == 3) {
+        // 手動でレイヤー3に入った場合、ヨー回転フラグをリセットしておく
+        yaw_scroll_layer_active = false; 
+        return mouse_report;
+    }
+
+    // --- ここから下は、レイヤー0, 1, 2にいる時（ポインタモード中）の処理 ---
+    // 念のためフラグをリセット
+    yaw_scroll_layer_active = false;
+
     // 「外積」を計算して回転量を蓄積
-    // V5修正点: タイムアウト時に last_x, last_y がリセットされているため、
-    // 新しいジェスチャーの1回目は cross_product が 0 となり、正しく計算が開始される
     int32_t cross_product = (int32_t)x * last_y - (int32_t)y * last_x;
     cumulative_rotation += cross_product;
 
@@ -146,4 +147,5 @@ report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
 
     return mouse_report;
 }
+
 /* ----- ヨー回転による自動レイヤー切り替え機能 ここまで ----- */
