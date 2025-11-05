@@ -1,4 +1,4 @@
-/*
+;/*
 Copyright 2022 @Yowkees
 Copyright 2022 MURAOKA Taro (aka KoRoN, @kaoriya)
 
@@ -69,7 +69,7 @@ layer_state_t layer_state_set_user(layer_state_t state) {
       // 必要に応じてCPI（マウス感度）をデフォルトに戻す
       // pointing_device_set_cpi(CPI_DEFAULT);
       // トラックボールのモードを「スクロールモード」に設定する
-      pointing_device_set_mode(POINTING_DEVICE_MODE_SCROLLING_2);
+      pointing_device_set_cpi(POINTING_DEVICE_BUTTON2);
     }
     return state;
 }
