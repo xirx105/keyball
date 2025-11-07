@@ -64,40 +64,9 @@ void oledkit_render_info_user(void) {
 }
 #endif
 
-#include <stdio.h>
-
-// OLEDに表示する内容を描画する関数
-bool oled_task_user(void) {
-    // 1行目: 現在のレイヤー名を描画する（KeyBallの標準機能）
-    oled_render_layer_state();
-    
-    // 2行目: 押したキーのログを描画する（KeyBallの標準機能）
-    oled_render_keylog();
-
-    // ----- ここからが追加するコード -----
-    
-    // 3行目: ヨー回転の閾値を表示する
-    
-    // EEPROMから現在の閾値（しきいち）を読み出す
-    uint16_t current_threshold = eeprom_read_word(&yaw_scroll_threshold_eeprom);
-    
-    // 表示用の文字列バッファを作成（例: "Thr: 800"）
-    char str[10];
-    sprintf(str, "Thr:%u", current_threshold);
-
-    // 3行目 (0から数えて2行目) の先頭にカーソルを移動
-    oled_set_cursor(0, 2);
-    // 文字列をOLEDに書き込む
-    oled_write(str, false);
-    
-    // ----- ここまで -----
-
-    return true;
-}
-
 layer_state_t layer_state_set_user(layer_state_t state) {
     // Auto enable scroll mode when the highest layer is 3
-    keyball_set_scroll_mode(get_highest_layer(state) == 3);
+    keyball_set_scroll_mode(get_highest_layer(state) == 1);
     return state;
 }
 
