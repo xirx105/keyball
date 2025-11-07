@@ -65,7 +65,6 @@ void oledkit_render_info_user(void) {
 #endif
 
 #include <stdio.h>
-#include "oledkit.h"
 
 // OLEDに表示する内容を描画する関数
 bool oled_task_user(void) {
