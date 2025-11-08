@@ -62,7 +62,7 @@ enum my_keycodes {
   MOUSESCRL = SAFE_RANGE,
 };
 
-// --- マウスモード自動化ロジック ---
+#define MOUSE_MODE_TIME_THRESHOLD 10
 
 // 状態を管理するグローバル変数
 static uint16_t mouse_mode_timer; // タイムアウト用タイマー
