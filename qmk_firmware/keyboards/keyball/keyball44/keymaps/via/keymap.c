@@ -135,10 +135,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record)
                 // マウス関連キーが押されたらタイマーをリセット（モード延長）
                 mouse_mode_timer = timer_read();
                 break;
-            default:
-                // マウス関連でないキー入力があったら即終了
-                mouse_mode_timer = 0;
-                break;
+            //default:
+            //    // マウス関連でないキー入力があったら即終了
+            //    mouse_mode_timer = 0;
+            //    break;
         }
     }
     
