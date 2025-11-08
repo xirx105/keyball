@@ -56,3 +56,85 @@ layer_state_t layer_state_set_user(layer_state_t state) {
     keyball_set_scroll_mode(get_highest_layer(state) == 1);
     return state;
 }
+
+// 状態を管理するグローバル変数
+static uint16_t mouse_mode_timer; // タイムアウト用タイマー
+static bool scroll_key_pressed = false; // スクロールキー(,)が押されているか
+
+// スクロール速度（値が大きいほど遅くなる）
+#define SCROLL_DIVISOR 4
+
+/**
+ * @brief マウスが動くたびに呼ばれる
+ * (pointing_device_task_user の代わり)
+ */
+void pointing_device_task_kb(void) {
+    // 1. センサーからレポートを取得
+    report_mouse_t report = pointing_device_driver_get_report();
+
+    bool mouse_moved = (report.x != 0 || report.y != 0);
+
+    // 2. スクロールキー(,)が押されているかチェック
+    if (scroll_key_pressed) {
+        // マウスのXY移動を、スクロール(V:垂直, H:水平)に変換
+        report.v = report.y / SCROLL_DIVISOR;
+        report.h = report.x / SCROLL_DIVISOR;
+        
+        // 本来のカーソル移動はキャンセル(0)する
+        report.x = 0;
+        report.y = 0;
+    }
+
+    // 3. マウスモードのタイマー管理
+    if (mouse_moved || scroll_key_pressed) {
+        // マウスが動いた or スクロール中なら、モードをONにしてタイマーリセット
+        layer_on(_MOUSE);
+        mouse_mode_timer = timer_read();
+    } else {
+        // マウスが動いていない場合
+        if (timer_elapsed(mouse_mode_timer) > MOUSE_MODE_TIMEOUT) {
+            // タイムアウトしたら _MOUSE レイヤーをOFFにする
+            layer_off(_MOUSE);
+        }
+    }
+
+    // 4. 処理済みのレポートをPCに送信
+    pointing_device_set_report(report);
+}
+
+/**
+ * @brief キーが押されるたびに呼ばれる
+ */
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+
+    // マウスレイヤーがONのときに、指定のキーが押されたかチェック
+    // (KC_BTN1 などは _MOUSE レイヤー上のキーコード)
+    if (IS_LAYER_ON(_MOUSE) && record->event.pressed) {
+        switch (keycode) {
+            case KC_BTN1:     // J
+            case KC_BTN2:     // K
+            case KC_BTN3:     // L
+            case KC_WWW_BACK: // M
+            case KC_WWW_FWD:  // 。
+                // マウス関連キーが押されたらタイマーをリセット（モード延長）
+                mouse_mode_timer = timer_read();
+                break;
+        }
+    }
+    
+    // スクロールキー(,)の処理
+    switch (keycode) {
+        case MOUSESCRL:
+            if (record->event.pressed) {
+                scroll_key_pressed = true;
+                // スクロール開始時もモードをONにし、タイマーをリセット
+                layer_on(_MOUSE);
+                mouse_mode_timer = timer_read();
+            } else {
+                scroll_key_pressed = false;
+            }
+            return false; // 「、」キーの通常の入力をブロック
+    }
+
+    return true; // 他のキーは通常通り処理
+}
