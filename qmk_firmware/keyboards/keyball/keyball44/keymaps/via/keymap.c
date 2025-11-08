@@ -66,34 +66,23 @@ enum my_keycodes {
 #define MOUSE_MODE_TIME_THRESHOLD 30
 
 // 状態を管理するグローバル変数
-static uint16_t mouse_mode_timer; // タイムアウト用タイマー
-static bool scroll_key_pressed = false; // スクロールキー(,)が押されているか
-static uint16_t move_start_timer = 0; // ★ 変更: 連続移動「開始時刻」用 (0=停止中)
+static uint16_t mousejj_mode_timer; // タイムアウト用タイマー
+static bool is_pressed_scroll = false; // スクロールキー(,)が押されているか
+static uint16_t move_start_timer = 0; // 開始用カウンタ
 
 // スクロール速度（値が大きいほど遅くなる）
 #define SCROLL_DIVISOR 4
 
-/**
- * @brief マウスが動くたびに呼ばれる (KeyBallドライバ対応版 + デルタタイム判定)
- */
-report_mouse_t pointing_device_task_kb(report_mouse_t report) {
-
-    // 1. しきい値を超える「現在の」動きがあったか
-    bool current_report_moving = (abs(report.x) > MOUSE_MODE_MOVE_THRESHOLD || abs(report.y) > MOUSE_MODE_MOVE_THRESHOLD);
-
-    // 2. 連続移動の「時間」判定
-    bool mouse_moved = false; // デフォルトは false
-
-    if (current_report_moving) {
-        // 動き続けている場合
-        if (move_start_timer == 0) {
-            // 動き始めた「瞬間」
-            move_start_timer = timer_read(); // 開始時刻を記録
+// マウスイベントコールバック
+report_mouse_t pointing_device_task_kb(report_mouse_t report)
+{
+    bool is_moved_mouse = false;
+    if (abs(report.x) > MOUSE_MODE_MOVE_THRESHOLD || abs(report.y) > MOUSE_MODE_MOVE_THRESHOLD) { // マウスが動いた
+        if (move_start_timer == 0) { // 動き始めた「瞬間」
+            move_start_timer = timer_read();
         } else {
-            // すでに動いている「最中」
-            if (timer_elapsed(move_start_timer) > MOUSE_MODE_TIME_THRESHOLD) {
-                // 規定時間(10ms)を連続で超えた
-                mouse_moved = true; // ★ これで初めてモード起動が true になる
+            if (timer_elapsed(move_start_timer) > MOUSE_MODE_TIME_THRESHOLD) { // MOUSE_MODE_TIME_THRESHOLD ms以上連続で動いた
+                is_moved_mouse = true;
             }
         }
     } else {
@@ -102,7 +91,7 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report) {
     }
 
     // 3. スクロールキー(,)が押されているかチェック
-    if (scroll_key_pressed) {
+    if (is_pressed_scroll) {
         // マウスのXY移動を、スクロール(V:垂直, H:水平)に変換
         report.v = report.y / SCROLL_DIVISOR;
         report.h = report.x / SCROLL_DIVISOR;
@@ -113,7 +102,7 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report) {
     }
 
     // 4. マウスモードのタイマー管理
-    if (mouse_moved || scroll_key_pressed) {
+    if (is_moved_mouse || is_pressed_scroll) {
         // マウスが動いた or スクロール中なら、モードをONにしてタイマーリセット
         layer_on(_MOUSE);
         mouse_mode_timer = timer_read();
@@ -133,8 +122,8 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report) {
 /**
  * @brief キーが押されるたびに呼ばれる
  */
-bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-
+bool process_record_user(uint16_t keycode, keyrecord_t *record)
+{
     // マウスレイヤーがONのときに、指定のキーが押されたかチェック
     if (IS_LAYER_ON(_MOUSE) && record->event.pressed) {
         switch (keycode) {
@@ -142,8 +131,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             case KC_BTN2:     // K
             case KC_BTN3:     // L
             case KC_WWW_BACK: // M
-            // ↓↓↓ ★ここを KC_WFWD に変更
-            case KC_WFWD:     // 。(KC_WWW_FWD から変更)
+            case KC_WFWD:     // 。
                 // マウス関連キーが押されたらタイマーをリセット（モード延長）
                 mouse_mode_timer = timer_read();
                 break;
@@ -158,12 +146,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
         case MOUSESCRL:
             if (record->event.pressed) {
-                scroll_key_pressed = true;
+                is_pressed_scroll = true;
                 // スクロール開始時もモードをONにし、タイマーをリセット
                 layer_on(_MOUSE);
                 mouse_mode_timer = timer_read();
             } else {
-                scroll_key_pressed = false;
+                is_pressed_scroll = false;
             }
             return false; // 「、」キーの通常の入力をブロック
     }
