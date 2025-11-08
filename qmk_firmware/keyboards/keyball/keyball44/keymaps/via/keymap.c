@@ -57,6 +57,17 @@ layer_state_t layer_state_set_user(layer_state_t state) {
     return state;
 }
 
+// マウスモードが自動解除されるまでの時間 (ms)
+#define MOUSE_MODE_TIMEOUT 3000
+
+enum my_layers {
+  _MOUSE = 3,
+};
+
+enum my_keycodes {
+  MOUSESCRL = SAFE_RANGE,
+};
+
 // 状態を管理するグローバル変数
 static uint16_t mouse_mode_timer; // タイムアウト用タイマー
 static bool scroll_key_pressed = false; // スクロールキー(,)が押されているか
@@ -65,12 +76,10 @@ static bool scroll_key_pressed = false; // スクロールキー(,)が押され�
 #define SCROLL_DIVISOR 4
 
 /**
- * @brief マウスが動くたびに呼ばれる
- * (pointing_device_task_user の代わり)
+ * @brief マウスが動くたびに呼ばれる (KeyBallドライバ対応版)
  */
-void pointing_device_task_kb(void) {
-    // 1. センサーからレポートを取得
-    report_mouse_t report = pointing_device_driver_get_report();
+report_mouse_t pointing_device_task_kb(report_mouse_t report) {
+    // 1. レポートは引数で渡される (get_report() は不要)
 
     bool mouse_moved = (report.x != 0 || report.y != 0);
 
@@ -98,8 +107,8 @@ void pointing_device_task_kb(void) {
         }
     }
 
-    // 4. 処理済みのレポートをPCに送信
-    pointing_device_set_report(report);
+    // 4. 処理済みのレポートを返す (set_report() は不要)
+    return report;
 }
 
 /**
@@ -108,14 +117,14 @@ void pointing_device_task_kb(void) {
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
     // マウスレイヤーがONのときに、指定のキーが押されたかチェック
-    // (KC_BTN1 などは _MOUSE レイヤー上のキーコード)
     if (IS_LAYER_ON(_MOUSE) && record->event.pressed) {
         switch (keycode) {
             case KC_BTN1:     // J
             case KC_BTN2:     // K
             case KC_BTN3:     // L
             case KC_WWW_BACK: // M
-            case KC_WWW_FWD:  // 。
+            // ↓↓↓ ★ここを KC_WFWD に変更
+            case KC_WFWD:     // 。(KC_WWW_FWD から変更)
                 // マウス関連キーが押されたらタイマーをリセット（モード延長）
                 mouse_mode_timer = timer_read();
                 break;
