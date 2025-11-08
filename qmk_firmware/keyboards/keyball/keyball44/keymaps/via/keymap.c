@@ -52,7 +52,7 @@ void oledkit_render_info_user(void) {
 #endif
 
 // マウスモードが自動解除されるまでの時間 (ms)
-#define MOUSE_MODE_TIMEOUT 3000
+#define MOUSE_MODE_TIMEOUT 1000
 
 enum my_layers {
   _MOUSE = 4,
@@ -76,16 +76,10 @@ static bool is_pressed_scroll = false; // スクロールキー(,)が押され�
 // マウスイベントコールバック
 report_mouse_t pointing_device_task_kb(report_mouse_t report)
 {
-    // 1. 起動タイマーの処理
+    // 1. マウスの移動チェック
     bool is_moved_mouse = false;
     if (abs(report.x) > MOUSE_MODE_MOVE_THRESHOLD || abs(report.y) > MOUSE_MODE_MOVE_THRESHOLD) { // マウスが動いた
-        if (move_start_timer < MOUSE_MODE_TIME_THRESHOLD) {
-            ++move_start_timer;
-        } else {
-            is_moved_mouse = true;
-        }
-    } else {
-        move_start_timer = 0;
+        is_moved_mouse = true;
     }
 
     // 2. スクロールキー(,)が押されているかチェック
