@@ -63,8 +63,11 @@ enum my_keycodes {
 };
 
 // 状態を管理するグローバル変数
+static uint16_t reset_time = timer_read(); // タイマーリセット用に起動時の時間を確保
 static uint16_t mouse_mode_timer; // タイムアウト用タイマー
 static bool scroll_key_pressed = false; // スクロールキー(,)が押されているか
+
+static uint16_t mouse_input_count = 0;
 
 // スクロール速度（値が大きいほど遅くなる）
 #define SCROLL_DIVISOR 4
@@ -75,7 +78,18 @@ static bool scroll_key_pressed = false; // スクロールキー(,)が押され�
 report_mouse_t pointing_device_task_kb(report_mouse_t report) {
     // 1. レポートは引数で渡される (get_report() は不要)
 
-    bool mouse_moved = (report.x != 0 || report.y != 0);
+    bool mouse_moved = false;
+    if (report.x != 0 || report.y != 0) {
+        if (mouse_input_count > 10) {
+            mouse_moved = true;
+        } else {
+            ++mouse_input_count;
+        }
+    } else {
+        if (mouse_input_count > 0) {
+            --mouse_input_count;
+        }
+    }
 
     // 2. スクロールキー(,)が押されているかチェック
     if (scroll_key_pressed) {
@@ -121,6 +135,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             case KC_WFWD:     // 。(KC_WWW_FWD から変更)
                 // マウス関連キーが押されたらタイマーをリセット（モード延長）
                 mouse_mode_timer = timer_read();
+                break;
+            default:
+                // マウス関連でないキー入力があったら即終了
+                mouse_mode_timer = reset_time;
                 break;
         }
     }
