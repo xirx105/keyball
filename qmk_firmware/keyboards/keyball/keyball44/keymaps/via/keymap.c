@@ -14,7 +14,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_TAB   , KC_Q     , KC_W     , KC_E     , KC_R     , KC_T     ,                                        KC_Y     , KC_U     , KC_I     , KC_O     , KC_P     , KC_DEL   ,
     KC_LCTL  , KC_A     , KC_S     , KC_D     , KC_F     , KC_G     ,                                        KC_H     , KC_J     , KC_K     , KC_L     , KC_SCLN  , S(KC_7)  ,
     KC_LSFT  , KC_Z     , KC_X     , KC_C     , KC_V     , KC_B     ,                                        KC_N     , KC_M     , KC_COMM  , KC_DOT   , KC_SLSH  , KC_INT1  ,
-              KC_LGUI   , KC_LALT  , MO(1)    , KC_SPC   , _______  ,                  KC_BSPC,LT(2,KC_ENT), RCTL_T(KC_LNG2),     KC_RALT  , KC_PSCR
+              KC_LGUI   , KC_LALT  , MO(1)    , KC_SPC   , _______  ,                                        KC_BSPC  ,LT(2,KC_ENT), RCTL_T(KC_LNG2)   , KC_RALT  , KC_PSCR
   ),
 
   [1] = LAYOUT_universal(
@@ -62,7 +62,7 @@ enum my_keycodes {
   MOUSESCRL = SAFE_RANGE,
 };
 
-#define MOUSE_MODE_MOVE_THRESHOLD 1
+#define MOUSE_MODE_MOVE_THRESHOLD 0
 #define MOUSE_MODE_TIME_THRESHOLD 30
 
 // 状態を管理するグローバル変数
@@ -78,21 +78,19 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report)
 {
     // 1. マウスの移動チェック
     bool is_moved_mouse = false;
-    is_moved_mouse = abs(report.x) > 0 || abs(report.y);
-    /*
     if (abs(report.x) > MOUSE_MODE_MOVE_THRESHOLD || abs(report.y) > MOUSE_MODE_MOVE_THRESHOLD) { // マウスが動いた
+        layer_on(1);
         if (move_start_timer == 0) { // 動き始めた「瞬間」
             move_start_timer = timer_read();
-        } else {
-            if (timer_elapsed(move_start_timer) > MOUSE_MODE_TIME_THRESHOLD) { // MOUSE_MODE_TIME_THRESHOLD ms以上連続で動いた
-                is_moved_mouse = true;
-            }
+        }
+        if (timer_elapsed(move_start_timer) > MOUSE_MODE_TIME_THRESHOLD) { // MOUSE_MODE_TIME_THRESHOLD ms以上連続で動いた
+            is_moved_mouse = true;
         }
     } else {
+        layer_off(1);
         // 動きが止まった（またはしきい値以下になった）場合
         move_start_timer = 0; // 開始時刻をリセット
     }
-    */
 
     // 2. スクロールキー(,)が押されているかチェック
     if (is_pressed_scroll) {
@@ -123,44 +121,4 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report)
 
     // 4. 処理済みのレポートを返す
     return report;
-}
-
-/**
- * @brief キーが押されるたびに呼ばれる
- */
-bool process_record_user(uint16_t keycode, keyrecord_t *record)
-{
-    // マウスレイヤーがONのときに、指定のキーが押されたかチェック
-    if (IS_LAYER_ON(_MOUSE) && record->event.pressed) {
-        switch (keycode) {
-            case KC_BTN1:     // J
-            case KC_BTN2:     // K
-            case KC_BTN3:     // L
-            case KC_WWW_BACK: // M
-            case KC_WFWD:     // 。
-                // マウス関連キーが押されたらタイマーをリセット（モード延長）
-                mouse_mode_timer = timer_read();
-                break;
-            default:
-                // マウス関連でないキー入力があったら即終了
-                mouse_mode_timer = 0;
-                break;
-        }
-    }
-    
-    // スクロールキー(,)の処理
-    switch (keycode) {
-        case MOUSESCRL:
-            if (record->event.pressed) {
-                is_pressed_scroll = true;
-                // スクロール開始時もモードをONにし、タイマーをリセット
-                layer_on(_MOUSE);
-                mouse_mode_timer = timer_read();
-            } else {
-                is_pressed_scroll = false;
-            }
-            return false; // 「、」キーの通常の入力をブロック
-    }
-
-    return true; // 他のキーは通常通り処理
 }
