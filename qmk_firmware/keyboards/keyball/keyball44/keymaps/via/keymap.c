@@ -73,7 +73,7 @@ static uint16_t mouse_input_count = 0;
 #define SCROLL_DIVISOR 4
 
 // マウスモードをオンにする連続入力ステップ
-#define MOUSE_MODE_CHANGE_STEP 10
+#define MOUSE_MODE_CHANGE_STEP 1
 
 /**
  * @brief マウスが動くたびに呼ばれる (KeyBallドライバ対応版)
