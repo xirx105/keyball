@@ -63,7 +63,7 @@ enum my_keycodes {
 };
 
 #define MOUSE_MODE_MOVE_THRESHOLD 0
-#define MOUSE_MODE_TIME_THRESHOLD 1
+#define MOUSE_MODE_TIME_THRESHOLD 5
 
 // 状態を管理するグローバル変数
 static uint16_t move_start_timer = 0; // 開始用カウンタ
