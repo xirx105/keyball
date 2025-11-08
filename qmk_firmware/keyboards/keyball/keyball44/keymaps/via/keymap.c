@@ -63,7 +63,7 @@ enum my_keycodes {
 };
 
 // 状態を管理するグローバル変数
-static uint16_t reset_time = timer_read(); // タイマーリセット用に起動時の時間を確保
+static const uint16_t reset_time = 0; // タイマーリセット用に起動時の時間を確保
 static uint16_t mouse_mode_timer; // タイムアウト用タイマー
 static bool scroll_key_pressed = false; // スクロールキー(,)が押されているか
 
@@ -71,6 +71,9 @@ static uint16_t mouse_input_count = 0;
 
 // スクロール速度（値が大きいほど遅くなる）
 #define SCROLL_DIVISOR 4
+
+// マウスモードをオンにする連続入力ステップ
+#define MOUSE_MODE_CHANGE_STEP 10
 
 /**
  * @brief マウスが動くたびに呼ばれる (KeyBallドライバ対応版)
@@ -80,7 +83,7 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report) {
 
     bool mouse_moved = false;
     if (report.x != 0 || report.y != 0) {
-        if (mouse_input_count > 10) {
+        if (mouse_input_count > MOUSE_MODE_CHANGE_STEP) {
             mouse_moved = true;
         } else {
             ++mouse_input_count;
