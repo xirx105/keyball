@@ -63,7 +63,7 @@ enum my_keycodes {
 };
 
 #define MOUSE_MODE_MOVE_THRESHOLD 0
-#define MOUSE_MODE_TIME_THRESHOLD 5
+#define MOUSE_MODE_TIME_THRESHOLD 1
 
 // 状態を管理するグローバル変数
 static uint16_t move_start_timer = 0; // 開始用カウンタ
@@ -79,7 +79,6 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report)
     // 1. マウスの移動チェック
     bool is_moved_mouse = false;
     if (abs(report.x) > MOUSE_MODE_MOVE_THRESHOLD || abs(report.y) > MOUSE_MODE_MOVE_THRESHOLD) { // マウスが動いた
-        is_moved_mouse = true;
         if (move_start_timer == 0) { // 動き始めた「瞬間」
             move_start_timer = timer_read();
         }
