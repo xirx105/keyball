@@ -77,6 +77,7 @@ static bool is_pressed_scroll = false; // スクロールキー(,)が押され�
 report_mouse_t pointing_device_task_kb(report_mouse_t report)
 {
     // 1. 起動タイマーの処理
+    bool is_moved_mouse = false;
     if (abs(report.x) > MOUSE_MODE_MOVE_THRESHOLD || abs(report.y) > MOUSE_MODE_MOVE_THRESHOLD) { // マウスが動いた
         if (move_start_timer < MOUSE_MODE_TIME_THRESHOLD) {
             ++move_start_timer;
