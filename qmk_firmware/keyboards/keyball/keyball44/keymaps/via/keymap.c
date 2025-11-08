@@ -66,9 +66,9 @@ enum my_keycodes {
 #define MOUSE_MODE_TIME_THRESHOLD 30
 
 // 状態を管理するグローバル変数
-static uint16_t mouse_mode_timer; // タイムアウト用タイマー
-static bool is_pressed_scroll = false; // スクロールキー(,)が押されているか
 static uint16_t move_start_timer = 0; // 開始用カウンタ
+static uint16_t mouse_mode_timer = 0; // タイムアウト用タイマー
+static bool is_pressed_scroll = false; // スクロールキー(,)が押されているか
 
 // スクロール速度（値が大きいほど遅くなる）
 #define SCROLL_DIVISOR 4
@@ -76,7 +76,10 @@ static uint16_t move_start_timer = 0; // 開始用カウンタ
 // マウスイベントコールバック
 report_mouse_t pointing_device_task_kb(report_mouse_t report)
 {
+    // 1. マウスの移動チェック
     bool is_moved_mouse = false;
+    is_moved_mouse = abs(report.x) > 0 || abs(report.y);
+    /*
     if (abs(report.x) > MOUSE_MODE_MOVE_THRESHOLD || abs(report.y) > MOUSE_MODE_MOVE_THRESHOLD) { // マウスが動いた
         if (move_start_timer == 0) { // 動き始めた「瞬間」
             move_start_timer = timer_read();
@@ -89,8 +92,9 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report)
         // 動きが止まった（またはしきい値以下になった）場合
         move_start_timer = 0; // 開始時刻をリセット
     }
+    */
 
-    // 3. スクロールキー(,)が押されているかチェック
+    // 2. スクロールキー(,)が押されているかチェック
     if (is_pressed_scroll) {
         // マウスのXY移動を、スクロール(V:垂直, H:水平)に変換
         report.v = report.y / SCROLL_DIVISOR;
@@ -101,7 +105,7 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report)
         report.y = 0;
     }
 
-    // 4. マウスモードのタイマー管理
+    // 3. マウスモードのタイマー管理
     if (is_moved_mouse || is_pressed_scroll) {
         // マウスが動いた or スクロール中なら、モードをONにしてタイマーリセット
         layer_on(_MOUSE);
@@ -117,7 +121,7 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report)
         }
     }
 
-    // 5. 処理済みのレポートを返す
+    // 4. 処理済みのレポートを返す
     return report;
 }
 
