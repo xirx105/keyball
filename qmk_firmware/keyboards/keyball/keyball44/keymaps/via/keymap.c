@@ -55,7 +55,7 @@ void oledkit_render_info_user(void) {
 #define MOUSE_MODE_TIMEOUT 3000
 
 enum my_layers {
-  _MOUSE = 3,
+  _MOUSE = 4,
 };
 
 enum my_keycodes {
