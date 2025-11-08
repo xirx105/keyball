@@ -77,26 +77,14 @@ static bool is_pressed_scroll = false; // スクロールキー(,)が押され�
 report_mouse_t pointing_device_task_kb(report_mouse_t report)
 {
     // 1. 起動タイマーの処理
-    bool is_moved_mouse = false;
-    bool significant_movement = (abs(report.x) > MOUSE_MODE_MOVE_THRESHOLD || abs(report.y) > MOUSE_MODE_MOVE_THRESHOLD);
-    bool any_movement = (report.x != 0 || report.y != 0);
-
-    if (move_start_timer == 0) {
-        // タイマーが停止中の場合
-        if (significant_movement) {
-            // しきい値を超える動きでタイマーを起動
-            move_start_timer = timer_read();
+    if (abs(report.x) > MOUSE_MODE_MOVE_THRESHOLD || abs(report.y) > MOUSE_MODE_MOVE_THRESHOLD) { // マウスが動いた
+        if (move_start_timer < MOUSE_MODE_TIME_THRESHOLD) {
+            ++move_start_timer;
+        } else {
+            is_moved_mouse = true;
         }
     } else {
-        // タイマーが作動中の場合
-        if (!any_movement) {
-            // ★ 修正: 「完全に」停止した場合(0,0)のみ、タイマーをリセット
-            move_start_timer = 0;
-        } else if (timer_elapsed(move_start_timer) > MOUSE_MODE_TIME_THRESHOLD) {
-            // 連続移動時間がしきい値(30ms)を超えた
-            is_moved_mouse = true; // ★ 起動フラグを立てる
-        }
-        // (しきい値以下だが、0ではない動き(例: 1,0)の場合はタイマーをリセットしない)
+        move_start_timer = 0;
     }
 
     // 2. スクロールキー(,)が押されているかチェック
