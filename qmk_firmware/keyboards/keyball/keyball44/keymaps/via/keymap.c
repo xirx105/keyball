@@ -62,7 +62,7 @@ enum my_keycodes {
   MOUSESCRL = SAFE_RANGE,
 };
 
-#define MOUSE_MODE_MOVE_THRESHOLD 3
+#define MOUSE_MODE_MOVE_THRESHOLD 1
 #define MOUSE_MODE_TIME_THRESHOLD 30
 
 // 状態を管理するグローバル変数
@@ -109,9 +109,10 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report)
     } else {
         // マウスが動いていない場合 (タイムアウト処理)
         if (move_start_timer == 0) { // 連続移動がリセットされた後でのみタイムアウト判定
-            if (timer_elapsed(mouse_mode_timer) > MOUSE_MODE_TIMEOUT) {
+            if (mouse_mode_timer != 0 && timer_elapsed(mouse_mode_timer) > MOUSE_MODE_TIMEOUT) {
                 // タイムアウトしたら _MOUSE レイヤーをOFFにする
                 layer_off(_MOUSE);
+                mouse_mode_timer = 0;
             }
         }
     }
@@ -119,6 +120,7 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report)
     // 5. 処理済みのレポートを返す
     return report;
 }
+
 /**
  * @brief キーが押されるたびに呼ばれる
  */
@@ -135,10 +137,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record)
                 // マウス関連キーが押されたらタイマーをリセット（モード延長）
                 mouse_mode_timer = timer_read();
                 break;
-            //default:
-            //    // マウス関連でないキー入力があったら即終了
-            //    mouse_mode_timer = 0;
-            //    break;
+            default:
+                // マウス関連でないキー入力があったら即終了
+                mouse_mode_timer = 0;
+                break;
         }
     }
     
