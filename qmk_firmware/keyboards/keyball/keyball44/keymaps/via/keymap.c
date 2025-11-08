@@ -148,7 +148,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 break;
             default:
                 // マウス関連でないキー入力があったら即終了
-                mouse_mode_timer = reset_time;
+                mouse_mode_timer = 0;
                 break;
         }
     }
