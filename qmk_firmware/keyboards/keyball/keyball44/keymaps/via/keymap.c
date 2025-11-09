@@ -82,18 +82,18 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report)
     bool is_touched_mouse = report.x != 0 || report.y != 0;
 
     if (is_moved_mouse) { // マウスが動いた
-        if (move_start_time == 0) {
-            move_start_time = timer_read();
+        if (move_start_timer == 0) {
+            move_start_timer = timer_read();
         }
     }
     if (is_touched_mouse) {
-        if (timer_elapsed(move_start_time) < MOUSE_MODE_TIME_THRESHOLD) {
+        if (timer_elapsed(move_start_timer) < MOUSE_MODE_TIME_THRESHOLD) {
             is_change_mouse_mode = true;
             report.x = 0;
             report.y = 0;
         }
     } else {
-        move_start_time = 0;
+        move_start_timer = 0;
     }
 
     // 2. スクロールキー(,)が押されているかチェック
