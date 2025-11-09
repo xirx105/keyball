@@ -108,7 +108,7 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report)
     }
 
     // 3. マウスモードのタイマー管理
-    if (is_moved_mouse || is_pressed_scroll) {
+    if (is_change_mouse_mode || is_pressed_scroll) {
         // マウスが動いた or スクロール中なら、モードをONにしてタイマーリセット
         if (!IS_LAYER_ON(_MOUSE)) {
             layer_on(_MOUSE);
