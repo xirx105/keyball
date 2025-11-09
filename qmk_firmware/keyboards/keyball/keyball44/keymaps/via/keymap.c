@@ -95,7 +95,7 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report)
         move_start_timer = 0;
     }
 
-    // 2. スクロールキー(,)が押されているかチェック
+    // 2. スクロールキーが押されているかチェック
     if (is_pressed_scroll) {
         // マウスのXY移動を、スクロール(V:垂直, H:水平)に変換
         report.v = -report.y / SCROLL_DIVISOR;
@@ -126,7 +126,16 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report)
         }
     }
 
-    // 4. 処理済みのレポートを返す
+    // 4. 速度調整
+    if (IS_LAYER_ON(1)) {
+        report.x /= 2;
+        report.y /= 2;
+        report.v /= 2;
+        report.h /= 2;
+    }    
+
+
+    // 5. 処理済みのレポートを返す
     return report;
 }
 
@@ -166,5 +175,5 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record)
             }
     }
 
-    return true; // 他のキーは通常通り処理
+    return true;
 }
