@@ -79,7 +79,6 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report)
     // 1. マウスの移動チェック
     bool is_moved_mouse = false;
     if (abs(report.x) > MOUSE_MODE_MOVE_THRESHOLD || abs(report.y) > MOUSE_MODE_MOVE_THRESHOLD) { // マウスが動いた
-        move_start_timer = 
         is_moved_mouse = true;
     }
 
@@ -97,7 +96,7 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report)
     // 3. マウスモードのタイマー管理
     if (is_moved_mouse || is_pressed_scroll) {
         // マウスが動いた or スクロール中なら、モードをONにしてタイマーリセット
-        if IS_LAYER_ON(_MOUSE) {
+        if (!IS_LAYER_ON(_MOUSE)) {
             layer_on(_MOUSE);
         }
         mouse_mode_timer = timer_read();
