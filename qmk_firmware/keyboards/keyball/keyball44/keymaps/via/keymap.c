@@ -58,6 +58,10 @@ enum my_layers {
   _MOUSE = 4,
 };
 
+enum my_keys {
+    KC_SCROLL = QK_USER_0,
+};
+
 #define MOUSE_MODE_MOVE_THRESHOLD 3
 #define MOUSE_MODE_TIME_THRESHOLD 300
 
@@ -136,11 +140,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record)
     // マウスレイヤーがONのときに、指定のキーが押されたかチェック
     if (IS_LAYER_ON(_MOUSE) && record->event.pressed) {
         switch (keycode) {
-            case KC_BTN1:     // クリック
-            case KC_BTN2:     // 右クリック
-            case KC_BTN3:     // 中クリック
-            case LALT(KC_LEFT):
-            case LALT(KC_RGHT):
+            case KC_BTN1:       // クリック
+            case KC_BTN2:       // 右クリック
+            case KC_BTN3:       // 中クリック
+            case KC_SCROLL:     // スクロール用
+            case LALT(KC_LEFT): // 戻る
+            case LALT(KC_RGHT): // 進む
                 // マウス関連キーが押されたらタイマーをリセット（モード延長）
                 mouse_mode_timer = timer_read();
                 break;
@@ -152,13 +157,16 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record)
         }
     }
     
-    // スクロールキー(,)の処理
-    // switch (keycode) {
-    //     case MOUSESCRL:
-    //         layer_on(_MOUSE);
-    //         is_pressed_scroll = record->event.pressed;
-    //         return false; // 「、」キーの通常の入力をブロック
-    // }
+    // スクロールキーの処理
+    switch (keycode) {
+        case KC_SCROLL:
+            if (record->event.pressed) {
+                layer_on(_MOUSE);
+                is_pressed_scroll = true;
+            }else {
+                is_pressed_scroll = false;
+            }
+    }
 
     return true; // 他のキーは通常通り処理
 }
