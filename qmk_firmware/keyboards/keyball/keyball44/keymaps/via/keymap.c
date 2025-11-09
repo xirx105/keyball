@@ -77,9 +77,23 @@ static bool is_pressed_scroll = false; // スクロールキー(,)が押され�
 report_mouse_t pointing_device_task_kb(report_mouse_t report)
 {
     // 1. マウスの移動チェック
-    bool is_moved_mouse = false;
-    if (abs(report.x) > MOUSE_MODE_MOVE_THRESHOLD || abs(report.y) > MOUSE_MODE_MOVE_THRESHOLD) { // マウスが動いた
-        is_moved_mouse = true;
+    bool is_change_mouse_mode = false;
+    bool is_moved_mouse = abs(report.x) > MOUSE_MODE_MOVE_THRESHOLD || abs(report.y) > MOUSE_MODE_MOVE_THRESHOLD;
+    bool is_touched_mouse = report.x != 0 || report.y != 0;
+
+    if (is_moved_mouse) { // マウスが動いた
+        if (move_start_time == 0) {
+            move_start_time = timer_read();
+        }
+    }
+    if (is_touched_mouse) {
+        if (timer_elapsed(move_start_time) < MOUSE_MODE_TIME_THRESHOLD) {
+            is_change_mouse_mode = true;
+            report.x = 0;
+            report.y = 0;
+        }
+    } else {
+        move_start_time = 0;
     }
 
     // 2. スクロールキー(,)が押されているかチェック
