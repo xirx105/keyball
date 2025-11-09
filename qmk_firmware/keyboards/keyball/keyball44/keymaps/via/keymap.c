@@ -62,8 +62,8 @@ enum my_keycodes {
   MOUSESCRL = SAFE_RANGE,
 };
 
-#define MOUSE_MODE_MOVE_THRESHOLD 10
-#define MOUSE_MODE_TIME_THRESHOLD 1
+#define MOUSE_MODE_MOVE_THRESHOLD 3
+#define MOUSE_MODE_TIME_THRESHOLD 30
 
 // 状態を管理するグローバル変数
 static uint16_t move_start_timer = 0; // 開始用カウンタ
@@ -79,6 +79,7 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report)
     // 1. マウスの移動チェック
     bool is_moved_mouse = false;
     if (abs(report.x) > MOUSE_MODE_MOVE_THRESHOLD || abs(report.y) > MOUSE_MODE_MOVE_THRESHOLD) { // マウスが動いた
+        move_start_timer = 
         is_moved_mouse = true;
     }
 
@@ -96,7 +97,9 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report)
     // 3. マウスモードのタイマー管理
     if (is_moved_mouse || is_pressed_scroll) {
         // マウスが動いた or スクロール中なら、モードをONにしてタイマーリセット
-        layer_on(_MOUSE);
+        if IS_LAYER_ON(_MOUSE) {
+            layer_on(_MOUSE);
+        }
         mouse_mode_timer = timer_read();
     } else {
         // マウスが動いていない場合 (タイムアウト処理)
