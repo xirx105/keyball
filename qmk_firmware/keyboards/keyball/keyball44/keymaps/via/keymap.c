@@ -58,10 +58,6 @@ enum my_layers {
   _MOUSE = 4,
 };
 
-enum my_keycodes {
-  MOUSESCRL = SAFE_RANGE,
-};
-
 #define MOUSE_MODE_MOVE_THRESHOLD 3
 #define MOUSE_MODE_TIME_THRESHOLD 300
 
@@ -90,7 +86,7 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report)
         if (move_start_timer != 0 && timer_elapsed(move_start_timer) < MOUSE_MODE_TIME_THRESHOLD) {
             is_change_mouse_mode = true;
         } else {
-            report.x = 0;
+            report.x = 0;jj
             report.y = 0;
         }
     } else {
@@ -107,7 +103,7 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report)
         report.x = 0;
         report.y = 0;
     }
-  
+
     // 3. マウスモードのタイマー管理
     if (is_change_mouse_mode || is_pressed_scroll) {
         // マウスが動いた or スクロール中なら、モードをONにしてタイマーリセット
@@ -140,34 +136,29 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record)
     // マウスレイヤーがONのときに、指定のキーが押されたかチェック
     if (IS_LAYER_ON(_MOUSE) && record->event.pressed) {
         switch (keycode) {
-            case KC_BTN1:     // J
-            case KC_BTN2:     // K
-            case KC_BTN3:     // L
-            //case KC_WWW_BACK: // M
-            //case KC_WFWD:     // 。
+            case KC_BTN1:     // クリック
+            case KC_BTN2:     // 右クリック
+            case KC_BTN3:     // 中クリック
+            case LALT(KC_LEFT):
+            case LALT(KC_RGHT):
                 // マウス関連キーが押されたらタイマーをリセット（モード延長）
                 mouse_mode_timer = timer_read();
                 break;
             default:
                 // マウス関連でないキー入力があったら即終了
-                mouse_mode_timer = 0;
+                layer_off(_MOUSE);
+                mouse_mode_timer = 0;   
                 break;
         }
     }
     
     // スクロールキー(,)の処理
-    switch (keycode) {
-        case MOUSESCRL:
-            if (record->event.pressed) {
-                is_pressed_scroll = true;
-                // スクロール開始時もモードをONにし、タイマーをリセット
-                layer_on(_MOUSE);
-                mouse_mode_timer = timer_read();
-            } else {
-                is_pressed_scroll = false;
-            }
-            return false; // 「、」キーの通常の入力をブロック
-    }
+    // switch (keycode) {
+    //     case MOUSESCRL:
+    //         layer_on(_MOUSE);
+    //         is_pressed_scroll = record->event.pressed;
+    //         return false; // 「、」キーの通常の入力をブロック
+    // }
 
     return true; // 他のキーは通常通り処理
 }
