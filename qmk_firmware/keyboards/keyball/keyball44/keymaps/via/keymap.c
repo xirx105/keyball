@@ -107,7 +107,7 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report)
         report.x = 0;
         report.y = 0;
     }
-
+  
     // 3. マウスモードのタイマー管理
     if (is_change_mouse_mode || is_pressed_scroll) {
         // マウスが動いた or スクロール中なら、モードをONにしてタイマーリセット
@@ -118,9 +118,11 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report)
     } else {
         // マウスが動いていない場合 (タイムアウト処理)
         if (move_start_timer == 0) { // 連続移動がリセットされた後でのみタイムアウト判定
-            if (mouse_mode_timer != 0 && timer_elapsed(mouse_mode_timer) > MOUSE_MODE_TIMEOUT) {
+            if (mouse_mode_timer == 0 || timer_elapsed(mouse_mode_timer) > MOUSE_MODE_TIMEOUT) {
                 // タイムアウトしたら _MOUSE レイヤーをOFFにする
-                layer_off(_MOUSE);
+                if (IS_LAYER_ON(_MOUSE)) {
+                    layer_off(_MOUSE);
+                }
                 mouse_mode_timer = 0;
             }
         }
