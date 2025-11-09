@@ -51,9 +51,6 @@ void oledkit_render_info_user(void) {
 }
 #endif
 
-// マウスモードが自動解除されるまでの時間 (ms)
-#define MOUSE_MODE_TIMEOUT 1000
-
 enum my_layers {
   _MOUSE = 4,
 };
@@ -62,6 +59,7 @@ enum my_keys {
     KC_SCROLL = QK_USER_0,
 };
 
+#define MOUSE_MODE_TIMEOUT 1000
 #define MOUSE_MODE_MOVE_THRESHOLD 3
 #define MOUSE_MODE_TIME_THRESHOLD 300
 
@@ -100,7 +98,7 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report)
     // 2. スクロールキー(,)が押されているかチェック
     if (is_pressed_scroll) {
         // マウスのXY移動を、スクロール(V:垂直, H:水平)に変換
-        report.v = report.y / SCROLL_DIVISOR;
+        report.v = -report.y / SCROLL_DIVISOR;
         report.h = report.x / SCROLL_DIVISOR;
         
         // 本来のカーソル移動はキャンセル(0)する
