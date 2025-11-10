@@ -112,7 +112,7 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report)
         //is_change_mouse_mode = true;
     } else {
         // 連続でマウスを動かしていても0が返る区間があるのでちょっとだけ猶予を設ける
-        if (mouse_mode_timer != 0 && move_start_keep_timer != 0 && timer_elapsed(move_start_keep_timer) > 10) {
+        if (mouse_mode_timer == 0 && move_start_keep_timer != 0 && timer_elapsed(move_start_keep_timer) > 10) {
             move_start_timer = 0;
             move_start_keep_timer = 0;
         }
