@@ -60,7 +60,8 @@ enum my_keys {
 };
 
 // CPI
-#define POST_INIT_CPI 6
+#define MOUSE_MOVE_CPI 6
+#define SCROLL_CPI 2
 // スクロール速度（値が大きいほど遅くなる）
 #define SCROLL_DIVISOR 5
 
@@ -79,7 +80,7 @@ static bool is_pressed_scroll = false; // スクロールキー(,)が押され�
 void keyboard_post_init_user(void)
 {
     // 起動時にCPIを STARTUP_CPI に設定する
-    pointing_device_set_cpi(POST_INIT_CPI);
+    pointing_device_set_cpi(MOUSE_MOVE_CPI);
 }
 
 /**
@@ -182,10 +183,18 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record)
     switch (keycode) {
         case KC_SCROLL:
             if (record->event.pressed) {
-                layer_on(_MOUSE);
-                is_pressed_scroll = true;
-            }else {
-                is_pressed_scroll = false;
+                if (!IS_LAYER_ON(_MOUSE)) {
+                    layer_on(_MOUSE);
+                }
+                if (!is_pressed_scroll) {
+                    pointing_device_set_cpi(MOUSE_MOVE_CPI);
+                    is_pressed_scroll = true;
+                }
+            } else {
+                if (is_pressed_scroll) {
+                    pointing_device_set_cpi(SCROLL_CPI);
+                    is_pressed_scroll = false;
+                }
             }
     }
 
