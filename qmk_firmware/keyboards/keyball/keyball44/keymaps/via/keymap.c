@@ -67,11 +67,15 @@ enum my_keys {
 #define MOUSE_MODE_MOVE_THRESHOLD 0
 #define MOUSE_MODE_TIME_THRESHOLD 10
 
+#define SCROLL_DIVISOR 2
+
 // 状態を管理するグローバル変数
 static uint16_t move_start_timer = 0; // 開始用カウンタ
 static uint16_t mouse_mode_timer = 0; // タイムアウト用タイマー
 static bool is_pressed_scroll = false; // スクロールキー(,)が押されているか
-
+static int16_t x_acc = 0; // X軸アキュムレータ
+static int16_t y_acc = 0; // Y軸アキュムレータ
+static bool was_scrolling = false; // モード切替検知用
 /**
  * @brief 起動後処理
  */
@@ -109,14 +113,27 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report)
     }
 
     // 2. スクロールキーが押されているかチェック
-    if (is_pressed_scroll) {
-        // マウスのXY移動を、スクロール(V:垂直, H:水平)に変換
-        report.v = -report.y;
-        report.h =  report.x;
-        
-        // 本来のカーソル移動はキャンセル(0)する
-        report.x = 0;
-        report.y = 0;
+    {
+        if (is_pressed_scroll != was_scrolling) {
+            x_acc = 0;
+            y_acc = 0;
+            was_scrolling = is_pressed_scroll;
+        }
+
+        // 現在の移動量をアキュムレータに加算
+        x_acc += report.x;
+        y_acc -= report.y; // 縦スクロールは反転
+
+        if (is_pressed_scroll) {
+            report.h = x_acc / SCROLL_DIVISOR; // 水平スクロール
+            report.v = y_acc / SCROLL_DIVISOR; // 垂直スクロール
+            
+            x_acc = x_acc % SCROLL_DIVISOR;
+            y_acc = y_acc % SCROLL_DIVISOR;
+            
+            report.x = 0;
+            report.y = 0;
+        }
     }
 
     // 3. マウスモードのタイマー管理
