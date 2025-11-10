@@ -62,8 +62,6 @@ enum my_keys {
 // CPI
 #define MOUSE_MOVE_CPI 6
 #define SCROLL_CPI 2
-// スクロール速度（値が大きいほど遅くなる）
-#define SCROLL_DIVISOR 5
 
 #define MOUSE_MODE_TIMEOUT 1500
 #define MOUSE_MODE_MOVE_THRESHOLD 0
@@ -113,8 +111,8 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report)
     // 2. スクロールキーが押されているかチェック
     if (is_pressed_scroll) {
         // マウスのXY移動を、スクロール(V:垂直, H:水平)に変換
-        report.v = -report.y / SCROLL_DIVISOR;
-        report.h = report.x / SCROLL_DIVISOR;
+        report.v = -report.y;
+        report.h = -report.x;
         
         // 本来のカーソル移動はキャンセル(0)する
         report.x = 0;
