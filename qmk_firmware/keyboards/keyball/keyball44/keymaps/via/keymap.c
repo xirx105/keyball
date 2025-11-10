@@ -98,12 +98,13 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report)
         }
     }
     if (is_touched_mouse) {
-        if (move_start_timer != 0 && timer_elapsed(move_start_timer) > MOUSE_MODE_TIME_THRESHOLD) {
-            is_change_mouse_mode = true;
-        } else if (!is_change_mouse_mode) {
-            report.x = 0;
-            report.y = 0;
-        }
+        // if (move_start_timer != 0 && timer_elapsed(move_start_timer) > MOUSE_MODE_TIME_THRESHOLD) {
+        //     is_change_mouse_mode = true;
+        // } else if (!is_change_mouse_mode) {
+        //     report.x = 0;
+        //     report.y = 0;
+        // }
+        is_change_mouse_mode = true;
     } else {
         move_start_timer = 0;
     }
