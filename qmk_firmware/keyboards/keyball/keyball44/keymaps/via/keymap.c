@@ -59,6 +59,11 @@ enum my_keys {
     KC_SCROLL = QK_USER_0,
 };
 
+// CPI
+#define POST_INIT_CPI 6
+// スクロール速度（値が大きいほど遅くなる）
+#define SCROLL_DIVISOR 4
+
 #define MOUSE_MODE_TIMEOUT 1000
 #define MOUSE_MODE_MOVE_THRESHOLD 3
 #define MOUSE_MODE_TIME_THRESHOLD 300
@@ -68,10 +73,18 @@ static uint16_t move_start_timer = 0; // 開始用カウンタ
 static uint16_t mouse_mode_timer = 0; // タイムアウト用タイマー
 static bool is_pressed_scroll = false; // スクロールキー(,)が押されているか
 
-// スクロール速度（値が大きいほど遅くなる）
-#define SCROLL_DIVISOR 4
+/**
+ * @brief 起動後処理
+ */
+void keyboard_post_init_user(void)
+{
+    // 起動時にCPIを STARTUP_CPI に設定する
+    pointing_device_set_cpi(POST_INIT_CPI);
+}
 
-// マウスイベントコールバック
+/**
+ * @brief マウスイベントコールバック
+ */
 report_mouse_t pointing_device_task_kb(report_mouse_t report)
 {
     // 1. マウスの移動チェック
@@ -128,7 +141,7 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report)
 
     // 4. 速度調整
     if (IS_LAYER_ON(1)) {
-        report.x /= 2;
+        report.x /= 2;  
         report.y /= 2;
         report.v /= 2;
         report.h /= 2;
