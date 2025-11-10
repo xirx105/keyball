@@ -187,12 +187,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record)
                     layer_on(_MOUSE);
                 }
                 if (!is_pressed_scroll) {
-                    pointing_device_set_cpi(MOUSE_MOVE_CPI);
+                    pointing_device_set_cpi(SCROLL_CPI);
                     is_pressed_scroll = true;
                 }
             } else {
                 if (is_pressed_scroll) {
-                    pointing_device_set_cpi(SCROLL_CPI);
+                    pointing_device_set_cpi(MOUSE_MOVE_CPI);
                     is_pressed_scroll = false;
                 }
             }
