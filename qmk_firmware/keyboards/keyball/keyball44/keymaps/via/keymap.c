@@ -65,7 +65,7 @@ enum my_keys {
 
 #define MOUSE_MODE_TIMEOUT 1500
 #define MOUSE_MODE_MOVE_THRESHOLD 0
-#define MOUSE_MODE_TIME_THRESHOLD 10
+#define MOUSE_MODE_TIME_THRESHOLD 300
 
 #define SCROLL_DIVISOR 2
 
@@ -111,6 +111,7 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report)
         }
         //is_change_mouse_mode = true;
     } else {
+        // 連続でマウスを動かしていても0が返る区間があるのでちょっとだけ猶予を設ける
         if (move_start_keep_timer != 0 && timer_elapsed(move_start_keep_timer) > 10) {
             move_start_timer = 0;
             move_start_keep_timer = 0;
