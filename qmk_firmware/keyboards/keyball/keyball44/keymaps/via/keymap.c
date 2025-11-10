@@ -65,8 +65,8 @@ enum my_keys {
 #define SCROLL_DIVISOR 4
 
 #define MOUSE_MODE_TIMEOUT 1000
-#define MOUSE_MODE_MOVE_THRESHOLD 3
-#define MOUSE_MODE_TIME_THRESHOLD 300
+#define MOUSE_MODE_MOVE_THRESHOLD 1
+#define MOUSE_MODE_TIME_THRESHOLD 30
 
 // 状態を管理するグローバル変数
 static uint16_t move_start_timer = 0; // 開始用カウンタ
@@ -98,7 +98,7 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report)
         }
     }
     if (is_touched_mouse) {
-        if (move_start_timer != 0 && timer_elapsed(move_start_timer) < MOUSE_MODE_TIME_THRESHOLD) {
+        if (move_start_timer != 0 && timer_elapsed(move_start_timer) > MOUSE_MODE_TIME_THRESHOLD) {
             is_change_mouse_mode = true;
         } else {
             report.x = 0;
