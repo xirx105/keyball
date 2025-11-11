@@ -51,7 +51,7 @@ void oledkit_render_info_user(void) {
 }
 
 // CapsLockの状態をOLEDに出力
-static void oled_write_host_led_state(void) {　
+static void oled_write_host_led_state(void) {
     const led_t led_state = host_keyboard_led_state();
     oled_write_P(PSTR("Caps:"), false);
     oled_write_P(led_state.caps_lock   ? PSTR("+") : PSTR("-"), false);
@@ -62,7 +62,6 @@ void oledkit_render_logo_user(void) {
     oled_set_cursor(15, 0);
     oled_write_host_led_state();
 }
-
 
 #endif
 
