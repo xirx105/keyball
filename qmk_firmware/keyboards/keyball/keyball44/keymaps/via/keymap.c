@@ -49,6 +49,21 @@ void oledkit_render_info_user(void) {
     keyball_oled_render_ballinfo();
     keyball_oled_render_layerinfo();
 }
+
+// CapsLockの状態をOLEDに出力
+static void oled_write_host_led_state(void) {　
+    const led_t led_state = host_keyboard_led_state();
+    oled_write_P(PSTR("Caps:"), false);
+    oled_write_P(led_state.caps_lock   ? PSTR("+") : PSTR("-"), false);
+}
+
+// サブOLEDの描画処理
+void oledkit_render_logo_user(void) {
+    oled_set_cursor(15, 0);
+    oled_write_host_led_state();
+}
+
+
 #endif
 
 enum my_layers {
