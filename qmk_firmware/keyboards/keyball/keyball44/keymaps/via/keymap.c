@@ -53,11 +53,9 @@ static void oled_write_host_led_state(void) {
 
 // メインOLEDの描画処理
 void oledkit_render_info_user(void) {
-    oled_set_cursor(15, 0);
-    oled_write_host_led_state();
-    //keyball_oled_render_keyinfo();
-    //keyball_oled_render_ballinfo();
-    //keyball_oled_render_layerinfo();
+    keyball_oled_render_keyinfo();
+    keyball_oled_render_ballinfo();
+    keyball_oled_render_layerinfo();
 }
 
 // サブOLEDの描画処理
