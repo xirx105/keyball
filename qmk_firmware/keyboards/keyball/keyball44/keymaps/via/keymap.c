@@ -46,7 +46,6 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 // CapsLockの状態をOLEDに出力
 static void oled_write_host_led_state(void) {
-    const led_t led_state = host_keyboard_led_state();
     oled_write_P(PSTR("Test"), false);
 }
 
