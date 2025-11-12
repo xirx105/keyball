@@ -44,11 +44,6 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 #include "lib/oledkit/oledkit.h"
 
-// CapsLockの状態をOLEDに出力
-static void oled_write_host_led_state(void) {
-    oled_write_P(PSTR("Test"), false);
-}
-
 // メインOLEDの描画処理
 void oledkit_render_info_user(void) {
     keyball_oled_render_keyinfo();
@@ -57,10 +52,9 @@ void oledkit_render_info_user(void) {
 }
 
 // サブOLEDの描画処理
-void oledkit_render_logo_user(void) {
-    oled_set_cursor(15, 0);
-    oled_write_host_led_state();
-}
+// void oledkit_render_logo_user(void) {
+//     oled_write_P(PSTR("Test"), false);
+// }
 
 #endif
 
