@@ -43,7 +43,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define DYNAMIC_KEYMAP_LAYER_COUNT 5
 
 // サブ側のOLEDを有効化
-#define SPLIT_LED_STATE_ENABLE
+// #define SPLIT_LED_STATE_ENABLE
 
 // ホールド判定待ち中に次のキーが入ると即ホールド判定が確定
 #define HOLD_ON_OTHER_KEY_PRESS
