@@ -44,18 +44,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 #include "lib/oledkit/oledkit.h"
 
-// メインOLEDの描画処理
 void oledkit_render_info_user(void) {
     keyball_oled_render_keyinfo();
     keyball_oled_render_ballinfo();
     keyball_oled_render_layerinfo();
 }
-
-// サブOLEDの描画処理
-// void oledkit_render_logo_user(void) {
-//     oled_write_P(PSTR("Test"), false);
-// }
-
 #endif
 
 enum my_layers {
