@@ -66,7 +66,7 @@ enum my_keys {
 #define MOUSE_MODE_TIMEOUT 1500
 #define MOUSE_MODE_MOVE_THRESHOLD 0
 #define MOUSE_MODE_TIME_THRESHOLD 10
-#define MOUSE_END_KEY_TIMEOUT 100
+#define MOUSE_END_KEY_TIMEOUT 500
 
 #define SCROLL_DIVISOR 2
 
@@ -206,13 +206,14 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record)
             case KC_U:       // U
             case KC_E:       // E
             case KC_O:       // O
-                if (mouse_end_key_timer != 0 || timer_elapsed(mouse_end_key_timer) < MOUSE_END_KEY_TIMEOUT) {
+                if (timer_elapsed(mouse_end_key_timer) < MOUSE_END_KEY_TIMEOUT) {
                     tap_code(mouse_end_keycode);
                 }
             default:
                 // マウス関連でないキー入力があったら即終了
                 layer_off(_MOUSE);
                 mouse_mode_timer = mouse_end_key_timer = 0;   
+                mouse_end_keycode = _______;
                 break;
         }
     }
