@@ -147,7 +147,7 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report)
                 if (IS_LAYER_ON(_MOUSE)) {
                     layer_off(_MOUSE);
                 }
-                mouse_mode_timer = mouse_end_key_timer = 0;
+                mouse_mode_timer = 0;
             }
         }
     }
