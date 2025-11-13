@@ -12,7 +12,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   // keymap for default (VIA)
   [0] = LAYOUT_universal(
     KC_TAB   , KC_Q     , KC_W     , KC_E     , KC_R     , KC_T     ,                                        KC_Y     , KC_U     , KC_I     , KC_O     , KC_P     , KC_DEL   ,
-    KC_RCTL  , KC_A     , KC_S     , KC_D     , KC_F     , KC_G     ,                                        KC_H     , KC_J     , KC_K     , KC_L     , KC_SCLN  , S(KC_7)  ,
+    KC_LCTL  , KC_A     , KC_S     , KC_D     , KC_F     , KC_G     ,                                        KC_H     , KC_J     , KC_K     , KC_L     , KC_SCLN  , S(KC_7)  ,
     KC_LSFT  , KC_Z     , KC_X     , KC_C     , KC_V     , KC_B     ,                                        KC_N     , KC_M     , KC_COMM  , KC_DOT   , KC_SLSH  , KC_INT1  ,
               KC_LGUI   , KC_LALT  , MO(1)    , KC_SPC   , _______  ,                                        KC_BSPC  ,LT(2,KC_ENT), RCTL_T(KC_LNG2)   , KC_RALT  , KC_PSCR
   ),
@@ -23,7 +23,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     SSNP_HOR ,  _______ , KC_LEFT  , KC_DOWN , KC_RGHT  , KC_BSPC  ,                                         KC_PGDN  , KC_LEFT  , KC_DOWN  , KC_RGHT  , _______  , _______  ,
                   _______  , _______ , _______  ,         _______  , _______  ,                   _______  , _______  , _______       , _______  , _______
   ),
-        
+
   [2] = LAYOUT_universal(
     _______  ,S(KC_QUOT), KC_7     , KC_8    , KC_9     , S(KC_8)  ,                                         S(KC_9)  , S(KC_1)  , S(KC_6)  , KC_LBRC  , S(KC_4)  , _______  ,
     _______  ,S(KC_SCLN), KC_4     , KC_5    , KC_6     , KC_RBRC  ,                                         KC_NUHS  , KC_MINS  , S(KC_EQL), S(KC_3)  , KC_QUOT  , S(KC_2)  ,
@@ -44,50 +44,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 #include "lib/oledkit/oledkit.h"
 
-static const char PROGMEM hanafuda_logo[] = {
-    // Page 0 (Y: 0-7px)
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    // Page 1 (Y: 8-15px)
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    // Page 2 (Y: 16-23px) - 月の上部
-    0x00, 0x00, 0x00, 0x06, 0x0F, 0x1F, 0x1F, 0x3F, 0x3F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x3F,
-    0x3F, 0x1F, 0x1F, 0x0F, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    // Page 3 (Y: 24-31px) - 月の中心
-    0x00, 0x80, 0xC0, 0xF0, 0xF8, 0xFC, 0xFE, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF, 0xFE, 0xFC, 0xF8, 0xF0, 0xC0, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    // Page 4 (Y: 32-39px) - 月の下部
-    0x00, 0x01, 0x03, 0x07, 0x0F, 0x1F, 0x3F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF, 0x3F, 0x1F, 0x0F, 0x07, 0x03, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    // Page 5 (Y: 40-47px) - ススキの穂
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC0, 0xC0, 0x60, 0x60, 0x30, 0x30, 0x18, 0x18, 0x08,
-    0x08, 0x04, 0x06, 0x02, 0x03, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    // Page 6 (Y: 48-55px) - ススキの茎
-    0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x83, 0x83, 0x43, 0x43, 0x23, 0x23, 0x13, 0x13, 0x0B,
-    0x0B, 0x0B, 0x0B, 0x0A, 0x0B, 0x09, 0x09, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08,
-    // Page 7 (Y: 56-63px) - ススキの茎
-    0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40,
-    0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40,
-};
-
-oled_rotation_t oled_init_user(oled_rotation_t rotation) {
-    if (is_keyboard_master()) {
-        return OLED_ROTATION_90;
-    }
-    return rotation;
-}
-
 void oledkit_render_info_user(void) {
     keyball_oled_render_keyinfo();
     keyball_oled_render_ballinfo();
     keyball_oled_render_layerinfo();
 }
-
-void oledkit_render_logo_user(void) {
-    oled_write_raw_P(hanafuda_logo, sizeof(hanafuda_logo));
-}
-
 #endif
 
 enum my_layers {
@@ -105,6 +66,7 @@ enum my_keys {
 #define MOUSE_MODE_TIMEOUT 1500
 #define MOUSE_MODE_MOVE_THRESHOLD 0
 #define MOUSE_MODE_TIME_THRESHOLD 10
+#define MOUSE_END_KEY_TIMEOUT 100
 
 #define SCROLL_DIVISOR 2
 
@@ -115,6 +77,9 @@ static bool is_pressed_scroll = false; // スクロールキー(,)が押され�
 static int16_t x_acc = 0; // X軸アキュムレータ
 static int16_t y_acc = 0; // Y軸アキュムレータ
 static bool was_scrolling = false; // モード切替検知用
+static uint16_t mouse_end_keycode = _______; // マウスモード解除時の引継ぎキー
+static uint16_t mouse_end_key_timer  = 0; // マウスモード解除時の引継ぎ有効時間計測タイマー
+
 /**
  * @brief 起動後処理
  */
@@ -184,7 +149,7 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report)
                 if (IS_LAYER_ON(_MOUSE)) {
                     layer_off(_MOUSE);
                 }
-                mouse_mode_timer = 0;
+                mouse_mode_timer = mouse_end_key_timer = 0;
             }
         }
     }
@@ -211,18 +176,43 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record)
     if (IS_LAYER_ON(_MOUSE) && record->event.pressed) {
         switch (keycode) {
             case KC_BTN1:       // クリック
-            case KC_BTN2:       // 右クリック
-            case KC_BTN3:       // 中クリック
-            case KC_SCROLL:     // スクロール用
-            case LALT(KC_LEFT): // 戻る
-            case LALT(KC_RGHT): // 進む
-                // マウス関連キーが押されたらタイマーをリセット（モード延長）
-                mouse_mode_timer = timer_read();
+                mouse_end_keycode = KC_J;
+                mouse_mode_timer = mouse_end_key_timer = timer_read();
                 break;
+            case KC_BTN2:       // 右クリック
+                mouse_end_keycode = KC_L;
+                mouse_mode_timer = mouse_end_key_timer = timer_read();
+                break;
+            case KC_BTN3:       // 中クリック
+                mouse_end_keycode = KC_COMM;
+                mouse_mode_timer = mouse_end_key_timer = timer_read();
+                break;
+            case LALT(KC_LEFT): // 戻る
+                mouse_end_keycode = KC_M;
+                mouse_mode_timer = mouse_end_key_timer = timer_read();
+                break;
+            case LALT(KC_RGHT): // 進む
+                mouse_end_keycode = KC_DOT;
+                mouse_mode_timer = timer_read();
+                mouse_end_key_timer = 0;
+                break;
+            case KC_SCROLL:     // スクロール用
+                mouse_end_keycode = KC_K;
+                mouse_mode_timer = timer_read();
+                mouse_end_key_timer = 0;
+                break;
+            case KC_A:       // A
+            case KC_I:       // I
+            case KC_U:       // U
+            case KC_E:       // E
+            case KC_O:       // O
+                if (mouse_end_key_timer != 0 || timer_elapsed(mouse_end_key_timer) < MOUSE_END_KEY_TIMEOUT) {
+                    tap_code(mouse_end_keycode);
+                }
             default:
                 // マウス関連でないキー入力があったら即終了
                 layer_off(_MOUSE);
-                mouse_mode_timer = 0;   
+                mouse_mode_timer = mouse_end_key_timer = 0;   
                 break;
         }
     }
