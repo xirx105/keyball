@@ -66,7 +66,6 @@ enum my_keys {
 #define MOUSE_MODE_TIMEOUT 1500
 #define MOUSE_MODE_MOVE_THRESHOLD 0
 #define MOUSE_MODE_TIME_THRESHOLD 10
-#define MOUSE_END_KEY_TIMEOUT 500
 
 #define SCROLL_DIVISOR 2
 
@@ -78,7 +77,6 @@ static int16_t x_acc = 0; // X軸アキュムレータ
 static int16_t y_acc = 0; // Y軸アキュムレータ
 static bool was_scrolling = false; // モード切替検知用
 static uint16_t mouse_end_keycode = _______; // マウスモード解除時の引継ぎキー
-static uint16_t mouse_end_key_timer  = 0; // マウスモード解除時の引継ぎ有効時間計測タイマー
 
 /**
  * @brief 起動後処理
@@ -177,48 +175,40 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record)
         switch (keycode) {
             case KC_BTN1:       // クリック
                 mouse_end_keycode = KC_J;
-                mouse_mode_timer = mouse_end_key_timer = timer_read();
-                    tap_code(mouse_end_keycode);
+                mouse_mode_timer = timer_read();
                 break;
             case KC_BTN2:       // 右クリック
                 mouse_end_keycode = KC_L;
-                mouse_mode_timer = mouse_end_key_timer = timer_read();
-                    tap_code(mouse_end_keycode);
+                mouse_mode_timer = timer_read();
                 break;
             case KC_BTN3:       // 中クリック
                 mouse_end_keycode = KC_COMM;
-                mouse_mode_timer = mouse_end_key_timer = timer_read();
-                    tap_code(mouse_end_keycode);
+                mouse_mode_timer = timer_read();
                 break;
             case LALT(KC_LEFT): // 戻る
                 mouse_end_keycode = KC_M;
-                mouse_mode_timer = mouse_end_key_timer = timer_read();
-                    tap_code(mouse_end_keycode);
+                mouse_mode_timer = timer_read();
                 break;
             case LALT(KC_RGHT): // 進む
                 mouse_end_keycode = KC_DOT;
                 mouse_mode_timer = timer_read();
-                mouse_end_key_timer = 0;
-                    tap_code(mouse_end_keycode);
                 break;
             case KC_SCROLL:     // スクロール用
                 mouse_end_keycode = KC_K;
                 mouse_mode_timer = timer_read();
-                mouse_end_key_timer = 0;
-                    tap_code(mouse_end_keycode);
                 break;
             case KC_A:       // A
             case KC_I:       // I
             case KC_U:       // U
             case KC_E:       // E
             case KC_O:       // O
-                if (timer_elapsed(mouse_end_key_timer) < MOUSE_END_KEY_TIMEOUT) {
+                if (mouse_end_keycode != _______) {
                     tap_code(mouse_end_keycode);
                 }
             default:
                 // マウス関連でないキー入力があったら即終了
                 layer_off(_MOUSE);
-                mouse_mode_timer = mouse_end_key_timer = 0;   
+                mouse_mode_timer = 0;   
                 mouse_end_keycode = _______;
                 break;
         }
