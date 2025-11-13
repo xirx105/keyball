@@ -72,7 +72,6 @@ enum my_keys {
 #define SCROLL_DIVISOR 2
 
 // 状態を管理するグローバル変数
-static uint16_t move_start_timer = 0; // 開始用カウンタ
 static uint16_t move_start_delay_timer = 0; // 開始遅延用カウンタ
 static uint16_t mouse_mode_timer = 0; // タイムアウト用タイマー
 static bool is_pressed_scroll = false; // スクロールキー(,)が押されているか
@@ -100,17 +99,9 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report)
     bool is_change_mouse_mode = false;
     int16_t threshold = (timer_elapsed(move_start_delay_timer) < MOUSE_START_DELAY_TIMEOUT) ? MOUSE_MODE_MOVE_THRESHOLD : 0;
     bool is_moved_mouse = abs(report.x) > threshold || abs(report.y) > threshold;
-    bool is_touched_mouse = report.x != 0 || report.y != 0;
 
-    if (is_moved_mouse) { // マウスが動いた
-        if (move_start_timer == 0) {
-            move_start_timer = timer_read();
-        }
-    }
-    if (is_touched_mouse) {
+    if (is_moved_mouse) {
         is_change_mouse_mode = true;
-    } else {
-        move_start_timer = 0;
     }
 
     // 2. スクロールキーが押されているかチェック
@@ -146,7 +137,7 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report)
         mouse_mode_timer = timer_read();
     } else {
         // マウスが動いていない場合 (タイムアウト処理)
-        if (move_start_timer == 0) { // 連続移動がリセットされた後でのみタイムアウト判定
+        if (!is_moved_mouse) { // 連続移動がリセットされた後でのみタイムアウト判定
             if (mouse_mode_timer == 0 || timer_elapsed(mouse_mode_timer) > MOUSE_MODE_TIMEOUT) {
                 // タイムアウトしたら _MOUSE レイヤーをOFFにする
                 if (IS_LAYER_ON(_MOUSE)) {
