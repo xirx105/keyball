@@ -101,7 +101,7 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report)
         }
     }
     if (is_touched_mouse) {
-k        is_change_mouse_mode = true;
+        is_change_mouse_mode = true;
     } else {
         move_start_timer = 0;
     }
