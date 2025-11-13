@@ -185,7 +185,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record)
                 break;
             case KC_BTN3:       // 中クリック
                 mouse_end_keycode = KC_COMM;
-                mouse_mode_timer = mouse_end_key_timer = timer_read();
+                mouse_mode_timer = timer_read();
+                mouse_end_key_timer = 0;
                 break;
             case LALT(KC_LEFT): // 戻る
                 mouse_end_keycode = KC_M;
@@ -198,8 +199,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record)
                 break;
             case KC_SCROLL:     // スクロール用
                 mouse_end_keycode = KC_K;
-                mouse_mode_timer = timer_read();
-                mouse_end_key_timer = 0;
+                mouse_mode_timer = mouse_end_key_timer = timer_read();
                 break;
             case KC_A:       // A
             case KC_I:       // I
