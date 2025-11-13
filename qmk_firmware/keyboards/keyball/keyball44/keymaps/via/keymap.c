@@ -178,28 +178,34 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record)
             case KC_BTN1:       // クリック
                 mouse_end_keycode = KC_J;
                 mouse_mode_timer = mouse_end_key_timer = timer_read();
+                    tap_code(mouse_end_keycode);
                 break;
             case KC_BTN2:       // 右クリック
                 mouse_end_keycode = KC_L;
                 mouse_mode_timer = mouse_end_key_timer = timer_read();
+                    tap_code(mouse_end_keycode);
                 break;
             case KC_BTN3:       // 中クリック
                 mouse_end_keycode = KC_COMM;
                 mouse_mode_timer = mouse_end_key_timer = timer_read();
+                    tap_code(mouse_end_keycode);
                 break;
             case LALT(KC_LEFT): // 戻る
                 mouse_end_keycode = KC_M;
                 mouse_mode_timer = mouse_end_key_timer = timer_read();
+                    tap_code(mouse_end_keycode);
                 break;
             case LALT(KC_RGHT): // 進む
                 mouse_end_keycode = KC_DOT;
                 mouse_mode_timer = timer_read();
                 mouse_end_key_timer = 0;
+                    tap_code(mouse_end_keycode);
                 break;
             case KC_SCROLL:     // スクロール用
                 mouse_end_keycode = KC_K;
                 mouse_mode_timer = timer_read();
                 mouse_end_key_timer = 0;
+                    tap_code(mouse_end_keycode);
                 break;
             case KC_A:       // A
             case KC_I:       // I
