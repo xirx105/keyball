@@ -64,7 +64,8 @@ enum my_keys {
 #define SCROLL_CPI 1
 
 #define MOUSE_MODE_TIMEOUT 1500
-#define MOUSE_MODE_MOVE_THRESHOLD 0
+#define MOUSE_START_DELAY_TIMEOUT 500
+#define MOUSE_MODE_MOVE_THRESHOLD 5
 #define MOUSE_MODE_TIME_THRESHOLD 10
 #define MOUSE_END_KEY_TIMEOUT 200
 
@@ -72,6 +73,7 @@ enum my_keys {
 
 // 状態を管理するグローバル変数
 static uint16_t move_start_timer = 0; // 開始用カウンタ
+static uint16_t move_start_delay_timer = 0; // 開始遅延用カウンタ
 static uint16_t mouse_mode_timer = 0; // タイムアウト用タイマー
 static bool is_pressed_scroll = false; // スクロールキー(,)が押されているか
 static int16_t x_acc = 0; // X軸アキュムレータ
@@ -96,7 +98,8 @@ report_mouse_t pointing_device_task_kb(report_mouse_t report)
 {
     // 1. マウスの移動チェック
     bool is_change_mouse_mode = false;
-    bool is_moved_mouse = abs(report.x) > MOUSE_MODE_MOVE_THRESHOLD || abs(report.y) > MOUSE_MODE_MOVE_THRESHOLD;
+    int16_t threshold = (timer_elapsed(move_start_delay_timer) < MOUSE_START_DELAY_TIMEOUT) ? MOUSE_MODE_MOVE_THRESHOLD : 0;
+    bool is_moved_mouse = abs(report.x) > threshold || abs(report.y) > threshold;
     bool is_touched_mouse = report.x != 0 || report.y != 0;
 
     if (is_moved_mouse) { // マウスが動いた
@@ -236,6 +239,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record)
                 }
             }
     }
+
+    // キー入力中はマウスモードになりにくくする
+    move_start_delay_timer = timer_read();
 
     return true;
 }
