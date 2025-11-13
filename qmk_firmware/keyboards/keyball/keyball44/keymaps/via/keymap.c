@@ -44,7 +44,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 // 花札のビットマップデータ (128x32 pixel)
 // ProGMEMを使ってフラッシュメモリに保存します
-static const uint8_t PROGMEM hanafuda_logo[] = {
+static const char PROGMEM hanafuda_logo[] = {
     // --- 左側：芒に月 (Moon & Susuki) ---
     // Page 0 (0-7px)
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
